@@ -1,0 +1,56 @@
+<script></script>
+
+<script>
+  class Model {
+    // @containerId: string
+    constructor(containerId) {
+      this.days = 30;
+      this.vsCurrencies = ['usd', 'eur', 'jpy'];
+      this.vsCurrency = 'eur';
+      this.ids = [
+        'bitcoin',
+        'ethereum',
+        'ripple',
+        'tether',
+        'bitcoin-cash',
+        'litecoin',
+        'eos',
+        'binancecoin',
+        'bitcoin-cash-sv',
+      ];
+      this.id = 'bitcoin';
+      this.prices = [];
+      this.container = document.getElementById(containerId);
+      this.getPriceHistory();
+    }
+    // @prices: [timeStamp: UnixTime, price: number][]
+    setPrices(prices) {
+      this.prices = prices;
+      this.render();
+    }
+    async getPriceHistory() {
+      return fetch(
+        `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=${
+          this.vsCurrency
+        }&days=${Math.max(this.days, 91)}`
+      )
+        .then(res =>
+          res.json().then(res => {
+            console.log('res: ', res);
+            this.setPrices(res.prices);
+          })
+        )
+        .catch(error => {
+          console.log('error: ', error);
+        });
+    }
+    render() {
+      this.container.innerHTML = 'success';
+    }
+  }
+</script>
+
+<div id="app-container"></div>
+<script>
+  const model = new Model('app-container');
+</script>
