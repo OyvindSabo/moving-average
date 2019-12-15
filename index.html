@@ -4,12 +4,18 @@
     constructor(containerId) {
       this.state = {
         days: 30,
-        id: 'bitcoin',
-        vsCurrency: 'eur',
+        cryptocurrencyId: 'bitcoin',
+        vsCurrencyId: 'eur',
         priceHistory: [],
       };
+
+      // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
         this.state = this.onSetPriceHistory(this.state, detail);
+        this.render();
+      });
+      window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
+        this.state = this.onSetCryptocurrency(this.state, detail);
         this.render();
       });
       this.fetchPriceHistory();
@@ -21,20 +27,24 @@
         ? { ...this.state, priceHistory: detail.priceHistory }
         : this.state;
     }
+    onSetCryptocurrency(previousState, detail) {
+      return detail.cryptocurrencyId
+        ? { ...this.state, cryptocurrencyId: detail.cryptocurrencyId }
+        : this.state;
+    }
 
     // Epics
     async fetchPriceHistory() {
       return fetch(
         `https://api.coingecko.com/api/v3/coins/${
-          this.state.id
-        }/market_chart?vs_currency=${this.state.vsCurrency}&days=${Math.max(
+          this.state.cryptocurrencyId
+        }/market_chart?vs_currency=${this.state.vsCurrencyId}&days=${Math.max(
           this.state.days,
           91
         )}`
       )
         .then(res =>
           res.json().then(res => {
-            console.log('res: ', res);
             const priceHistory = res.prices;
             window.dispatchEvent(
               new CustomEvent('SET_PRICE_HISTORY', { detail: { priceHistory } })
@@ -46,7 +56,6 @@
         });
     }
     render() {
-      //this.container.innerHTML = 'success';
       console.log('this.state.priceHistory: ', this.state.priceHistory);
       document.getElementById(
         'current-price'
@@ -59,7 +68,7 @@
 
 <div id="app-container">
   <span style="display:inline-block;width:100px;">Cryptocurrency</span>
-  <select>
+  <select id="cryptocurrency-select">
     <option value="bitcoin">Bitcoin</option>
     <option value="ethereum">Ethereum</option>
     <option value="ripple">XRP</option>
@@ -78,6 +87,17 @@
   <span style="display:inline-block;width:100px;">Current price: </span>
   <span id="current-price"></span>
 </div>
+<script>
+  document
+    .getElementById('cryptocurrency-select')
+    .addEventListener('change', () => {
+      const cryptocurrencyId = document.getElementById('cryptocurrency-select')
+        .value;
+      window.dispatchEvent(
+        new CustomEvent('SET_CRYPTOCURRENCY', { detail: { cryptocurrencyId } })
+      );
+    });
+</script>
 <script>
   const store = new Store('app-container');
 </script>
