@@ -1,43 +1,44 @@
 <script>
-  const cryptocurrencyIds = [
-    'bitcoin',
-    'ethereum',
-    'ripple',
-    'tether',
-    'bitcoin-cash',
-    'litecoin',
-    'eos',
-    'binancecoin',
-    'bitcoin-cash-sv',
-  ];
-  const vsCurrencies = ['usd', 'eur', 'jpy'];
-</script>
-
-<script>
   class Store {
     // @containerId: string
     constructor(containerId) {
-      this.days = 30;
-      this.vsCurrency = 'eur';
-      this.id = 'bitcoin';
-      this.prices = [];
-      this.getPriceHistory();
+      this.state = {
+        days: 30,
+        id: 'bitcoin',
+        vsCurrency: 'eur',
+        priceHistory: [],
+      };
+      window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
+        this.state = this.onSetPriceHistory(this.state, detail);
+        this.render();
+      });
+      this.fetchPriceHistory();
     }
-    // @prices: [timeStamp: UnixTime, price: number][]
-    setPrices(prices) {
-      this.prices = prices;
-      this.render();
+
+    // Reducers
+    onSetPriceHistory(previousState, detail) {
+      return detail.priceHistory
+        ? { ...this.state, priceHistory: detail.priceHistory }
+        : this.state;
     }
-    async getPriceHistory() {
+
+    // Epics
+    async fetchPriceHistory() {
       return fetch(
-        `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=${
-          this.vsCurrency
-        }&days=${Math.max(this.days, 91)}`
+        `https://api.coingecko.com/api/v3/coins/${
+          this.state.id
+        }/market_chart?vs_currency=${this.state.vsCurrency}&days=${Math.max(
+          this.state.days,
+          91
+        )}`
       )
         .then(res =>
           res.json().then(res => {
             console.log('res: ', res);
-            this.setPrices(res.prices);
+            const priceHistory = res.prices;
+            window.dispatchEvent(
+              new CustomEvent('SET_PRICE_HISTORY', { detail: { priceHistory } })
+            );
           })
         )
         .catch(error => {
@@ -46,8 +47,11 @@
     }
     render() {
       //this.container.innerHTML = 'success';
-      document.getElementById('current-price').innerHTML = this.prices[
-        this.prices.length - 1
+      console.log('this.state.priceHistory: ', this.state.priceHistory);
+      document.getElementById(
+        'current-price'
+      ).innerHTML = this.state.priceHistory[
+        this.state.priceHistory.length - 1
       ][1];
     }
   }
