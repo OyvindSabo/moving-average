@@ -16,30 +16,40 @@
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
         this.state = this.onSetCryptocurrency(this.state, detail);
+        this.afterSetCryptocurrency(this.state);
         this.render();
       });
-      this.fetchPriceHistory();
+      window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
+        this.state = this.onSetVsCurrency(this.state, detail);
+        this.render();
+      });
+      this.afterSetCryptocurrency(this.state);
     }
 
     // Reducers
     onSetPriceHistory(previousState, detail) {
       return detail.priceHistory
-        ? { ...this.state, priceHistory: detail.priceHistory }
-        : this.state;
+        ? { ...previousState, priceHistory: detail.priceHistory }
+        : previousState;
     }
     onSetCryptocurrency(previousState, detail) {
       return detail.cryptocurrencyId
-        ? { ...this.state, cryptocurrencyId: detail.cryptocurrencyId }
-        : this.state;
+        ? { ...previousState, cryptocurrencyId: detail.cryptocurrencyId }
+        : previousState;
+    }
+    onSetVsCurrency(previousState, detail) {
+      return detail.vsCurrencyId
+        ? { ...previousState, vsCurrencyId: detail.vsCurrencyId }
+        : previousState;
     }
 
     // Epics
-    async fetchPriceHistory() {
+    async afterSetCryptocurrency(state) {
       return fetch(
         `https://api.coingecko.com/api/v3/coins/${
-          this.state.cryptocurrencyId
-        }/market_chart?vs_currency=${this.state.vsCurrencyId}&days=${Math.max(
-          this.state.days,
+          state.cryptocurrencyId
+        }/market_chart?vs_currency=${state.vsCurrencyId}&days=${Math.max(
+          state.days,
           91
         )}`
       )
@@ -77,7 +87,7 @@
     <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
   ><br />
   <span style="display:inline-block;width:100px;">vs. currency</span>
-  <select>
+  <select id="vs-currency-select">
     <option value="usd">United States dollar</option>
     <option value="eur">Euro</option>
     <option value="jpy">Japanese yen</option>
@@ -87,16 +97,24 @@
   <span style="display:inline-block;width:100px;">Current price: </span>
   <span id="current-price"></span>
 </div>
+
+<!--Add change listeners to HTML-->
 <script>
-  document
-    .getElementById('cryptocurrency-select')
-    .addEventListener('change', () => {
-      const cryptocurrencyId = document.getElementById('cryptocurrency-select')
-        .value;
-      window.dispatchEvent(
-        new CustomEvent('SET_CRYPTOCURRENCY', { detail: { cryptocurrencyId } })
-      );
-    });
+  const cryptocurrencySelect = document.getElementById('cryptocurrency-select');
+  cryptocurrencySelect.addEventListener('change', () => {
+    const cryptocurrencyId = cryptocurrencySelect.value;
+    window.dispatchEvent(
+      new CustomEvent('SET_CRYPTOCURRENCY', { detail: { cryptocurrencyId } })
+    );
+  });
+
+  const vsCurrencySelect = document.getElementById('vs-currency-select');
+  vsCurrencySelect.addEventListener('change', () => {
+    const vsCurrencySelectId = vsCurrencySelect.value;
+    window.dispatchEvent(
+      new CustomEvent('SET_VS_CURRENCY', { detail: { vsCurrencyId } })
+    );
+  });
 </script>
 <script>
   const store = new Store('app-container');
