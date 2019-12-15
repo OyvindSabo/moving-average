@@ -1,27 +1,31 @@
 <script>
   class Store {
-    // @containerId: string
-    constructor(containerId) {
+    constructor() {
       this.state = {
-        days: 30,
+        days: 90,
         cryptocurrencyId: 'bitcoin',
         vsCurrencyId: 'eur',
         priceHistory: [],
+        movingAveragePeriod: 1,
       };
 
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
         this.state = this.onSetPriceHistory(this.state, detail);
-        this.render();
+        this.renderCurrentPrice();
+        this.renderPriceChart();
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
         this.state = this.onSetCryptocurrency(this.state, detail);
         this.afterSetCryptocurrency(this.state);
-        this.render();
       });
       window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
         this.state = this.onSetVsCurrency(this.state, detail);
-        this.render();
+        this.afterSetVsCurrency(this.state);
+      });
+      window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
+        this.state = this.onSetMovingAveragePeriod(this.state, detail);
+        this.renderPriceChart();
       });
       this.afterSetCryptocurrency(this.state);
     }
@@ -42,9 +46,18 @@
         ? { ...previousState, vsCurrencyId: detail.vsCurrencyId }
         : previousState;
     }
+    onSetMovingAveragePeriod(previousState, detail) {
+      return detail.movingAveragePeriod
+        ? {
+            ...previousState,
+            movingAveragePeriod: detail.movingAveragePeriod,
+            days: 90 + movingAveragePeriod,
+          }
+        : previousState;
+    }
 
-    // Epics
-    async afterSetCryptocurrency(state) {
+    // Side effects (which can be called by epics)
+    async fetchPriceHistory(state) {
       return fetch(
         `https://api.coingecko.com/api/v3/coins/${
           state.cryptocurrencyId
@@ -65,7 +78,17 @@
           console.log('error: ', error);
         });
     }
-    render() {
+
+    // Epics
+    afterSetCryptocurrency(state) {
+      this.fetchPriceHistory(state);
+    }
+
+    afterSetVsCurrency(state) {
+      this.fetchPriceHistory(state);
+    }
+
+    renderCurrentPrice() {
       console.log('this.state.priceHistory: ', this.state.priceHistory);
       document.getElementById(
         'current-price'
@@ -73,30 +96,68 @@
         this.state.priceHistory.length - 1
       ][1];
     }
+    renderPriceChart() {
+      const maxPrice = this.state.priceHistory.reduce(
+        (maxPrice, [timeStamp, price]) => Math.max(maxPrice, price),
+        0
+      );
+      const priceHistory = this.state.priceHistory.slice(-90);
+      priceHistory.forEach(([timeStamp, price], index) => {
+        const priceBar = document.getElementById(`price-bar-${index}`);
+        priceBar.style.width = `calc(100% / ${priceHistory.length})`;
+        priceBar.style.height = `calc(50vh * ${price} / ${maxPrice})`;
+      });
+    }
   }
 </script>
 
-<div id="app-container">
-  <span style="display:inline-block;width:100px;">Cryptocurrency</span>
-  <select id="cryptocurrency-select">
-    <option value="bitcoin">Bitcoin</option>
-    <option value="ethereum">Ethereum</option>
-    <option value="ripple">XRP</option>
-    <option value="tether">Tether</option>
-    <option value="bitcoin-cash">Bitcoin Cash</option>
-    <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
-  ><br />
-  <span style="display:inline-block;width:100px;">vs. currency</span>
-  <select id="vs-currency-select">
-    <option value="usd">United States dollar</option>
-    <option value="eur">Euro</option>
-    <option value="jpy">Japanese yen</option>
-    <option value="gbp">Pound sterling</option>
-    <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
-  ><br />
-  <span style="display:inline-block;width:100px;">Current price: </span>
-  <span id="current-price"></span>
-</div>
+<body style="background:DarkSlateGrey;">
+  <div id="app-container">
+    <span style="display:inline-block;width:100px;">Cryptocurrency</span>
+    <select id="cryptocurrency-select">
+      <option value="bitcoin">Bitcoin</option>
+      <option value="ethereum">Ethereum</option>
+      <option value="ripple">XRP</option>
+      <option value="tether">Tether</option>
+      <option value="bitcoin-cash">Bitcoin Cash</option>
+      <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
+    ><br />
+    <span style="display:inline-block;width:100px;">vs. currency</span>
+    <select id="vs-currency-select">
+      <option value="usd">United States dollar</option>
+      <option value="eur">Euro</option>
+      <option value="jpy">Japanese yen</option>
+      <option value="gbp">Pound sterling</option>
+      <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
+    ><br />
+    <span style="display:inline-block;width:100px;">Current price: </span>
+    <span id="current-price"></span>
+    <br />
+    <span style="display:inline-block;width:100px;"
+      >Moving average period:
+    </span>
+    <input id="moving-average-period-input" type="number" />
+    <div id="chart-container" style="width:100vw;height:50vh;"></div>
+  </div>
+</body>
+
+<!--Initialize chart bars-->
+<script>
+  const chartContainer = document.getElementById('chart-container');
+  for (let i = 0; i < 90; i++) {
+    const priceBar = document.createElement('span');
+    priceBar.id = `price-bar-${i}`;
+    priceBar.style.cssText = `
+      display: inline-block;
+      width: calc(100%/${90});
+      position: relative;
+      background-image: linear-gradient(rgb(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+      height: 0;
+      transition: 0.5s;
+    `;
+    chartContainer.appendChild(priceBar);
+  }
+</script>
 
 <!--Add change listeners to HTML-->
 <script>
@@ -110,12 +171,24 @@
 
   const vsCurrencySelect = document.getElementById('vs-currency-select');
   vsCurrencySelect.addEventListener('change', () => {
-    const vsCurrencySelectId = vsCurrencySelect.value;
+    const vsCurrencyId = vsCurrencySelect.value;
     window.dispatchEvent(
       new CustomEvent('SET_VS_CURRENCY', { detail: { vsCurrencyId } })
     );
   });
+
+  const movingAveragePeriodInput = document.getElementById(
+    'moving-average-period-input'
+  );
+  movingAveragePeriodInput.addEventListener('input', () => {
+    const movingAveragePeriod = movingAveragePeriodInput.value;
+    window.dispatchEvent(
+      new CustomEvent('SET_MOVING_AVERAGE_PERIOD', {
+        detail: { movingAveragePeriod },
+      })
+    );
+  });
 </script>
 <script>
-  const store = new Store('app-container');
+  const store = new Store();
 </script>
