@@ -4,16 +4,15 @@
       this.state = {
         days: 90,
         cryptocurrencyId: 'bitcoin',
-        vsCurrencyId: 'eur',
+        vsCurrencyId: 'usd',
         priceHistory: [],
-        movingAveragePeriod: 1,
+        movingAveragePeriod: 30,
       };
 
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
         this.state = this.onSetPriceHistory(this.state, detail);
-        this.renderCurrentPrice();
-        this.renderPriceChart();
+        this.render();
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
         this.state = this.onSetCryptocurrency(this.state, detail);
@@ -25,9 +24,9 @@
       });
       window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
         this.state = this.onSetMovingAveragePeriod(this.state, detail);
-        this.renderPriceChart();
+        this.afterSetMovingAveragePeriod(this.state);
       });
-      this.afterSetCryptocurrency(this.state);
+      this.fetchPriceHistory(this.state);
     }
 
     // Reducers
@@ -42,7 +41,7 @@
         : previousState;
     }
     onSetVsCurrency(previousState, detail) {
-      return detail.vsCurrencyId
+      return detail.vsCurrencyId.slice(-90)
         ? { ...previousState, vsCurrencyId: detail.vsCurrencyId }
         : previousState;
     }
@@ -51,7 +50,6 @@
         ? {
             ...previousState,
             movingAveragePeriod: detail.movingAveragePeriod,
-            days: 90 + movingAveragePeriod,
           }
         : previousState;
     }
@@ -61,10 +59,9 @@
       return fetch(
         `https://api.coingecko.com/api/v3/coins/${
           state.cryptocurrencyId
-        }/market_chart?vs_currency=${state.vsCurrencyId}&days=${Math.max(
-          state.days,
-          91
-        )}`
+        }/market_chart?vs_currency=${
+          state.vsCurrencyId
+        }&days=${state.movingAveragePeriod + 90}`
       )
         .then(res =>
           res.json().then(res => {
@@ -88,24 +85,53 @@
       this.fetchPriceHistory(state);
     }
 
-    renderCurrentPrice() {
+    afterSetMovingAveragePeriod(state) {
+      if (state.priceHistory.length < 90 + state.movingAveragePeriod) {
+        this.fetchPriceHistory(state);
+      }
+    }
+
+    render() {
+      // Render current price
       console.log('this.state.priceHistory: ', this.state.priceHistory);
       document.getElementById(
         'current-price'
       ).innerHTML = this.state.priceHistory[
         this.state.priceHistory.length - 1
       ][1];
-    }
-    renderPriceChart() {
-      const maxPrice = this.state.priceHistory.reduce(
-        (maxPrice, [timeStamp, price]) => Math.max(maxPrice, price),
-        0
-      );
+
+      // Render price chart
+      const maxPrice = this.state.priceHistory
+        .slice(-90)
+        .reduce((maxPrice, [timeStamp, price]) => Math.max(maxPrice, price), 0);
       const priceHistory = this.state.priceHistory.slice(-90);
       priceHistory.forEach(([timeStamp, price], index) => {
         const priceBar = document.getElementById(`price-bar-${index}`);
-        priceBar.style.width = `calc(100% / ${priceHistory.length})`;
         priceBar.style.height = `calc(50vh * ${price} / ${maxPrice})`;
+      });
+
+      // Render moving average chart
+      const { movingAveragePeriod } = this.state;
+      const movingAverage = this.state.priceHistory
+        .map(([timeStamp, price], index) => {
+          const pricesToAverage = this.state.priceHistory.slice(
+            Math.max(0, index - movingAveragePeriod) + 1,
+            index + 1
+          );
+          const averagePrice =
+            pricesToAverage.reduce(
+              (sum, [timestamp, price]) => price + sum,
+              0
+            ) / movingAveragePeriod;
+          return [timeStamp, averagePrice];
+        })
+        .slice(-90);
+      console.log('movingAverage: ', movingAverage);
+      movingAverage.forEach(([timeStamp, price], index) => {
+        const movingAverageBar = document.getElementById(
+          `moving-average-bar-${index}`
+        );
+        movingAverageBar.style.height = `calc(50vh * ${price} / ${maxPrice})`;
       });
     }
   }
@@ -136,7 +162,7 @@
     <span style="display:inline-block;width:100px;"
       >Moving average period:
     </span>
-    <input id="moving-average-period-input" type="number" />
+    <input id="moving-average-period-input" type="number" value="30" />
     <div id="chart-container" style="width:100vw;height:50vh;"></div>
   </div>
 </body>
@@ -145,17 +171,42 @@
 <script>
   const chartContainer = document.getElementById('chart-container');
   for (let i = 0; i < 90; i++) {
+    const bar = document.createElement('span');
+    bar.id = `bar-${i}`;
+    bar.style.cssText = `
+      display: inline-block;
+      width: calc(100vw/${90});
+      position: relative;
+      height: 50vh;
+    `;
+
     const priceBar = document.createElement('span');
     priceBar.id = `price-bar-${i}`;
     priceBar.style.cssText = `
       display: inline-block;
-      width: calc(100%/${90});
-      position: relative;
+      width: calc(100vw/${90});
+      position: absolute;
+      bottom: 0;
       background-image: linear-gradient(rgb(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
       height: 0;
       transition: 0.5s;
     `;
-    chartContainer.appendChild(priceBar);
+    bar.appendChild(priceBar);
+
+    const movingAverageBar = document.createElement('span');
+    movingAverageBar.id = `moving-average-bar-${i}`;
+    movingAverageBar.style.cssText = `
+      display: inline-block;
+      width: calc(100vw/${90});
+      position: absolute;
+      bottom: 0;
+      border-top: 2px solid cyan;
+      height: 0;
+      transition: 0.5s;
+    `;
+    bar.appendChild(movingAverageBar);
+
+    chartContainer.appendChild(bar);
   }
 </script>
 
