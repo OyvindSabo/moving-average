@@ -1,8 +1,13 @@
 <script>
+  const validateMovingAveragePeriod = movingAveragePeriod =>
+    Math.max(Math.min(movingAveragePeriod, 360), 1);
+</script>
+
+<script>
   class Store {
     constructor() {
       this.state = {
-        days: 90,
+        days: 360,
         cryptocurrencyId: 'bitcoin',
         vsCurrencyId: 'usd',
         priceHistory: [],
@@ -12,19 +17,19 @@
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
         this.state = this.onSetPriceHistory(this.state, detail);
-        this.render();
+        this.render(this.state);
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
         this.state = this.onSetCryptocurrency(this.state, detail);
-        this.afterSetCryptocurrency(this.state);
+        this.fetchPriceHistory(this.state);
       });
       window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
         this.state = this.onSetVsCurrency(this.state, detail);
-        this.afterSetVsCurrency(this.state);
+        this.fetchPriceHistory(this.state);
       });
       window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
         this.state = this.onSetMovingAveragePeriod(this.state, detail);
-        this.afterSetMovingAveragePeriod(this.state);
+        this.render(this.state);
       });
       this.fetchPriceHistory(this.state);
     }
@@ -57,11 +62,7 @@
     // Side effects (which can be called by epics)
     async fetchPriceHistory(state) {
       return fetch(
-        `https://api.coingecko.com/api/v3/coins/${
-          state.cryptocurrencyId
-        }/market_chart?vs_currency=${
-          state.vsCurrencyId
-        }&days=${state.movingAveragePeriod + 90}`
+        `https://api.coingecko.com/api/v3/coins/${state.cryptocurrencyId}/market_chart?vs_currency=${state.vsCurrencyId}&days=${state.days}`
       )
         .then(res =>
           res.json().then(res => {
@@ -76,71 +77,39 @@
         });
     }
 
-    // Epics
-    afterSetCryptocurrency(state) {
-      this.fetchPriceHistory(state);
-    }
+    render(state) {
+      const { priceHistory } = state;
+      const movingAveragePeriod = validateMovingAveragePeriod(
+        state.movingAveragePeriod
+      );
+      const currentPrice = priceHistory.slice(-1)[0][1];
 
-    afterSetVsCurrency(state) {
-      this.fetchPriceHistory(state);
-    }
-
-    afterSetMovingAveragePeriod(state) {
-      if (state.priceHistory.length < 90 + state.movingAveragePeriod) {
-        this.fetchPriceHistory(state);
-      }
-    }
-
-    render() {
       // Render current price
-      console.log('this.state.priceHistory: ', this.state.priceHistory);
+      document.getElementById('current-price').innerHTML = currentPrice;
+
+      // Render moving average label
       document.getElementById(
-        'current-price'
-      ).innerHTML = this.state.priceHistory[
-        this.state.priceHistory.length - 1
-      ][1];
+        'current-moving-average-label'
+      ).innerHTML = `${movingAveragePeriod}-day moving average:`;
 
-      // Render price chart
-      const maxPrice = this.state.priceHistory
-        .slice(-90)
-        .reduce((maxPrice, [timeStamp, price]) => Math.max(maxPrice, price), 0);
-      const priceHistory = this.state.priceHistory.slice(-90);
-      priceHistory.forEach(([timeStamp, price], index) => {
-        const priceBar = document.getElementById(`price-bar-${index}`);
-        priceBar.style.height = `calc(50vh * ${price} / ${maxPrice})`;
-      });
-
-      // Render moving average chart
-      const { movingAveragePeriod } = this.state;
-      const movingAverage = this.state.priceHistory
-        .map(([timeStamp, price], index) => {
-          const pricesToAverage = this.state.priceHistory.slice(
-            Math.max(0, index - movingAveragePeriod) + 1,
-            index + 1
-          );
-          const averagePrice =
-            pricesToAverage.reduce(
-              (sum, [timestamp, price]) => price + sum,
-              0
-            ) / movingAveragePeriod;
-          return [timeStamp, averagePrice];
-        })
-        .slice(-90);
-      console.log('movingAverage: ', movingAverage);
-      movingAverage.forEach(([timeStamp, price], index) => {
-        const movingAverageBar = document.getElementById(
-          `moving-average-bar-${index}`
-        );
-        movingAverageBar.style.height = `calc(50vh * ${price} / ${maxPrice})`;
-      });
+      // Render moving average
+      const movingAverage =
+        priceHistory
+          .slice(-movingAveragePeriod)
+          .reduce((sum, [timestamp, price]) => price + sum, 0) /
+        movingAveragePeriod;
+      document.getElementById(
+        'current-moving-average'
+      ).innerHTML = movingAverage;
     }
   }
 </script>
 
-<body style="background:DarkSlateGrey;">
-  <div id="app-container">
-    <span style="display:inline-block;width:100px;">Cryptocurrency</span>
-    <select id="cryptocurrency-select">
+<body style="background:DarkSlateGrey;background-image: linear-gradient(DarkSlateGrey, Black);">
+  <div style="width:100%;">
+  <span id="widget-container" style="margin-left:50%;margin-top:50px;display:inline-block;transform:translate(-50%, 0);background:SlateGrey;padding:50px;">
+    <span style="display:inline-block;width:200px;">Cryptocurrency</span>
+    <select id="cryptocurrency-select" style="width:200px;">
       <option value="bitcoin">Bitcoin</option>
       <option value="ethereum">Ethereum</option>
       <option value="ripple">XRP</option>
@@ -148,67 +117,37 @@
       <option value="bitcoin-cash">Bitcoin Cash</option>
       <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
     ><br />
-    <span style="display:inline-block;width:100px;">vs. currency</span>
-    <select id="vs-currency-select">
+    <span style="display:inline-block;width:200px;">vs. currency</span>
+    <select id="vs-currency-select" style="width:200px;">
       <option value="usd">United States dollar</option>
       <option value="eur">Euro</option>
       <option value="jpy">Japanese yen</option>
       <option value="gbp">Pound sterling</option>
-      <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
-    ><br />
-    <span style="display:inline-block;width:100px;">Current price: </span>
-    <span id="current-price"></span>
+      <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins-->
+    </select>
     <br />
-    <span style="display:inline-block;width:100px;"
+    <span style="display:inline-block;width:200px;"
       >Moving average period:
     </span>
-    <input id="moving-average-period-input" type="number" value="30" />
-    <div id="chart-container" style="width:100vw;height:50vh;"></div>
+    <input
+      id="moving-average-period-input"
+      type="number"
+      value="30"
+      style="width:200px;"
+    />
+    <br />
+    <span style="display:inline-block;width:200px;">Current price: </span>
+    <span id="current-price" style="width:200px;"></span>
+    <br />
+    <span
+      id="current-moving-average-label"
+      style="display:inline-block;width:200px;"
+      >30-day moving average:
+    </span>
+    <span id="current-moving-average" style="width:200px;""></span>
+  </span>
   </div>
 </body>
-
-<!--Initialize chart bars-->
-<script>
-  const chartContainer = document.getElementById('chart-container');
-  for (let i = 0; i < 90; i++) {
-    const bar = document.createElement('span');
-    bar.id = `bar-${i}`;
-    bar.style.cssText = `
-      display: inline-block;
-      width: calc(100vw/${90});
-      position: relative;
-      height: 50vh;
-    `;
-
-    const priceBar = document.createElement('span');
-    priceBar.id = `price-bar-${i}`;
-    priceBar.style.cssText = `
-      display: inline-block;
-      width: calc(100vw/${90});
-      position: absolute;
-      bottom: 0;
-      background-image: linear-gradient(rgb(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
-      height: 0;
-      transition: 0.5s;
-    `;
-    bar.appendChild(priceBar);
-
-    const movingAverageBar = document.createElement('span');
-    movingAverageBar.id = `moving-average-bar-${i}`;
-    movingAverageBar.style.cssText = `
-      display: inline-block;
-      width: calc(100vw/${90});
-      position: absolute;
-      bottom: 0;
-      border-top: 2px solid cyan;
-      height: 0;
-      transition: 0.5s;
-    `;
-    bar.appendChild(movingAverageBar);
-
-    chartContainer.appendChild(bar);
-  }
-</script>
 
 <!--Add change listeners to HTML-->
 <script>
