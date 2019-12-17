@@ -137,14 +137,10 @@
         .then(res =>
           res.json().then(res => {
             const priceHistory = res.prices;
-            setTimeout(
-              () =>
-                window.dispatchEvent(
-                  new CustomEvent('SET_PRICE_HISTORY', {
-                    detail: { priceHistory },
-                  })
-                ),
-              500
+            window.dispatchEvent(
+              new CustomEvent('SET_PRICE_HISTORY', {
+                detail: { priceHistory },
+              })
             );
           })
         )
