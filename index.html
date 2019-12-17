@@ -192,6 +192,7 @@
       const currentPrice = priceHistory.slice(-1)[0][1];
 
       if (state.isLoading) {
+        // Render loading animations
         document.getElementById('current-price').innerHTML = `
           <div class="lds-ellipsis">
             <div></div>
@@ -208,7 +209,9 @@
           </div>`;
       } else {
         // Render current price
-        document.getElementById('current-price').innerHTML = currentPrice;
+        document.getElementById(
+          'current-price'
+        ).innerHTML = currentPrice.toFixed(2);
 
         // Render moving average label
         const movingAveragePeriod = validateMovingAveragePeriod(
@@ -226,7 +229,7 @@
           movingAveragePeriod;
         document.getElementById(
           'current-moving-average'
-        ).innerHTML = movingAverage;
+        ).innerHTML = movingAverage.toFixed(2);
       }
     }
   }
