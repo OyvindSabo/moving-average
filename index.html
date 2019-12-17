@@ -1,4 +1,66 @@
 <style>
+  .lds-ellipsis {
+    display: inline-block;
+    position: absolute;
+    width: 200px;
+    height: 20px;
+  }
+  .lds-ellipsis div {
+    position: absolute;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+  }
+  .lds-ellipsis div:nth-child(1) {
+    background: #2c3e50;
+    left: 8px;
+    animation: lds-ellipsis1 0.6s infinite;
+  }
+  .lds-ellipsis div:nth-child(2) {
+    background: #2c3e50;
+    left: 8px;
+    animation: lds-ellipsis2 0.6s infinite;
+  }
+  .lds-ellipsis div:nth-child(3) {
+    background: #2c3e50;
+    left: 32px;
+    animation: lds-ellipsis2 0.6s infinite;
+  }
+  .lds-ellipsis div:nth-child(4) {
+    background: #2c3e50;
+    left: 56px;
+    animation: lds-ellipsis3 0.6s infinite;
+  }
+  @keyframes lds-ellipsis1 {
+    0% {
+      transform: scale(0);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes lds-ellipsis3 {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+  @keyframes lds-ellipsis2 {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(24px, 0);
+    }
+  }
+</style>
+
+<style>
   .root-style {
     text-align: center;
   }
@@ -11,6 +73,12 @@
     display: inline-block;
   }
   .input-style {
+    background: #ecf0f1;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+  }
+  .select-style {
     background: #ecf0f1;
     border: none;
     border-radius: 5px;
@@ -39,6 +107,7 @@
         vsCurrencyId: 'usd',
         priceHistory: [],
         movingAveragePeriod: 30,
+        isLoading: true,
       };
 
       // Bind actions to reducers
@@ -49,10 +118,12 @@
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
         this.state = this.onSetCryptocurrency(this.state, detail);
         this.fetchPriceHistory(this.state);
+        this.render(this.state);
       });
       window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
         this.state = this.onSetVsCurrency(this.state, detail);
         this.fetchPriceHistory(this.state);
+        this.render(this.state);
       });
       window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
         this.state = this.onSetMovingAveragePeriod(this.state, detail);
@@ -64,17 +135,29 @@
     // Reducers
     onSetPriceHistory(previousState, detail) {
       return detail.priceHistory
-        ? { ...previousState, priceHistory: detail.priceHistory }
+        ? {
+            ...previousState,
+            priceHistory: detail.priceHistory,
+            isLoading: false,
+          }
         : previousState;
     }
     onSetCryptocurrency(previousState, detail) {
       return detail.cryptocurrencyId
-        ? { ...previousState, cryptocurrencyId: detail.cryptocurrencyId }
+        ? {
+            ...previousState,
+            cryptocurrencyId: detail.cryptocurrencyId,
+            isLoading: true,
+          }
         : previousState;
     }
     onSetVsCurrency(previousState, detail) {
       return detail.vsCurrencyId.slice(-90)
-        ? { ...previousState, vsCurrencyId: detail.vsCurrencyId }
+        ? {
+            ...previousState,
+            vsCurrencyId: detail.vsCurrencyId,
+            isLoading: true,
+          }
         : previousState;
     }
     onSetMovingAveragePeriod(previousState, detail) {
@@ -106,28 +189,45 @@
 
     render(state) {
       const { priceHistory } = state;
-      const movingAveragePeriod = validateMovingAveragePeriod(
-        state.movingAveragePeriod
-      );
       const currentPrice = priceHistory.slice(-1)[0][1];
 
-      // Render current price
-      document.getElementById('current-price').innerHTML = currentPrice;
+      if (state.isLoading) {
+        document.getElementById('current-price').innerHTML = `
+          <div class="lds-ellipsis">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>`;
+        document.getElementById('current-moving-average').innerHTML = `
+          <div class="lds-ellipsis">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>`;
+      } else {
+        // Render current price
+        document.getElementById('current-price').innerHTML = currentPrice;
 
-      // Render moving average label
-      document.getElementById(
-        'current-moving-average-label'
-      ).innerHTML = `${movingAveragePeriod}-day moving average:`;
+        // Render moving average label
+        const movingAveragePeriod = validateMovingAveragePeriod(
+          state.movingAveragePeriod
+        );
+        document.getElementById(
+          'current-moving-average-label'
+        ).innerHTML = `${movingAveragePeriod}-day moving average:`;
 
-      // Render moving average
-      const movingAverage =
-        priceHistory
-          .slice(-movingAveragePeriod)
-          .reduce((sum, [timestamp, price]) => price + sum, 0) /
-        movingAveragePeriod;
-      document.getElementById(
-        'current-moving-average'
-      ).innerHTML = movingAverage;
+        // Render moving average
+        const movingAverage =
+          priceHistory
+            .slice(-movingAveragePeriod)
+            .reduce((sum, [timestamp, price]) => price + sum, 0) /
+          movingAveragePeriod;
+        document.getElementById(
+          'current-moving-average'
+        ).innerHTML = movingAverage;
+      }
     }
   }
 </script>
@@ -137,7 +237,7 @@
     <span class="text-style column-style">Cryptocurrency</span>
     <select
       id="cryptocurrency-select"
-      class="text-style column-style"
+      class="text-style column-style select-style"
       style="width:200px;"
     >
       <option value="bitcoin">Bitcoin</option>
@@ -148,7 +248,10 @@
       <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
     ><br />
     <span class="text-style column-style">vs. currency</span>
-    <select id="vs-currency-select" class="text-style column-style">
+    <select
+      id="vs-currency-select"
+      class="text-style column-style select-style"
+    >
       <option value="usd">United States dollar</option>
       <option value="eur">Euro</option>
       <option value="jpy">Japanese yen</option>
