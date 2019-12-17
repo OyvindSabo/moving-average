@@ -1,65 +1,4 @@
 <style>
-  .lds-ellipsis {
-    display: inline-block;
-    position: absolute;
-    width: 200px;
-    height: 20px;
-  }
-  .lds-ellipsis div {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #fff;
-    animation-timing-function: cubic-bezier(0, 1, 1, 0);
-  }
-  .lds-ellipsis div:nth-child(1) {
-    background: #2c3e50;
-    left: 5px;
-    animation: lds-ellipsis1 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(2) {
-    background: #2c3e50;
-    left: 5px;
-    animation: lds-ellipsis2 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(3) {
-    background: #2c3e50;
-    left: 30px;
-    animation: lds-ellipsis2 0.6s infinite;
-  }
-  .lds-ellipsis div:nth-child(4) {
-    background: #2c3e50;
-    left: 55px;
-    animation: lds-ellipsis3 0.6s infinite;
-  }
-  @keyframes lds-ellipsis1 {
-    0% {
-      transform: scale(0);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-  @keyframes lds-ellipsis3 {
-    0% {
-      transform: scale(1);
-    }
-    100% {
-      transform: scale(0);
-    }
-  }
-  @keyframes lds-ellipsis2 {
-    0% {
-      transform: translate(0, 0);
-    }
-    100% {
-      transform: translate(25px, 0);
-    }
-  }
-</style>
-
-<style>
   .root-style {
     text-align: center;
   }
@@ -103,6 +42,19 @@
 <script>
   const validateMovingAveragePeriod = movingAveragePeriod =>
     Math.max(Math.min(movingAveragePeriod, 360), 1);
+
+  const getSummary = (currentPrice, movingAverage, movingAveragePeriod) => {
+    const priceIsHigherThanMovingAverage = currentPrice > movingAverage;
+    const differenceFactor = priceIsHigherThanMovingAverage
+      ? (currentPrice / movingAverage - 1) * 100
+      : (1 - currentPrice / movingAverage) * 100;
+    const preposition = priceIsHigherThanMovingAverage ? 'above' : 'below';
+    const color = priceIsHigherThanMovingAverage ? 'green' : 'red';
+    const summaryMessage = `The current price is <span style="color:${color};">${differenceFactor.toFixed(
+      2
+    )}%</span> ${preposition} the ${movingAveragePeriod}-day moving average.`;
+    return summaryMessage;
+  };
 </script>
 
 <script>
@@ -137,6 +89,7 @@
         this.render(this.state);
       });
       this.fetchPriceHistory(this.state);
+      this.render(this.state);
     }
 
     // Reducers
@@ -202,26 +155,22 @@
 
     render(state) {
       const { priceHistory } = state;
-      const currentPrice = priceHistory.slice(-1)[0][1];
 
       if (state.isLoading) {
-        // Render loading animations
-        document.getElementById('current-price').innerHTML = `
-          <div class="lds-ellipsis">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>`;
-        document.getElementById('current-moving-average').innerHTML = `
-          <div class="lds-ellipsis">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>`;
+        // Repeatedly render random current price
+        const randomCurrentPrice = (Math.random() * 10000).toFixed(2);
+        document.getElementById('current-price').innerHTML = randomCurrentPrice;
+
+        // Repeatedly render random moving average
+        const randomMovingAverage = (Math.random() * 10000).toFixed(2);
+        document.getElementById(
+          'current-moving-average'
+        ).innerHTML = randomMovingAverage;
+
+        setTimeout(() => this.render(this.state), 0);
       } else {
         // Render current price
+        const currentPrice = priceHistory.slice(-1)[0][1];
         document.getElementById(
           'current-price'
         ).innerHTML = currentPrice.toFixed(2);
@@ -245,16 +194,12 @@
         ).innerHTML = movingAverage.toFixed(2);
 
         // Render summary
-        const priceIsHigherThanMovingAverage = currentPrice > movingAverage;
-        const differenceFactor = priceIsHigherThanMovingAverage
-          ? (currentPrice / movingAverage - 1) * 100
-          : (1 - currentPrice / movingAverage) * 100;
-        const preposition = priceIsHigherThanMovingAverage ? 'above' : 'below';
-        const color = priceIsHigherThanMovingAverage ? 'green' : 'red';
-        const summaryMessage = `The current price is <span style="color:${color};">${differenceFactor.toFixed(
-          2
-        )}%</span> ${preposition} the ${movingAveragePeriod}-day moving average.`;
-        document.getElementById('summary').innerHTML = summaryMessage;
+        const summary = getSummary(
+          currentPrice,
+          movingAverage,
+          movingAveragePeriod
+        );
+        document.getElementById('summary').innerHTML = summary;
       }
     }
   }
@@ -297,24 +242,12 @@
     />
     <br />
     <span class="text-style column-style">Current price: </span>
-    <span id="current-price" class="text-style column-style"
-      ><div class="lds-ellipsis">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div></div
-    ></span>
+    <span id="current-price" class="text-style column-style"></span>
     <br />
     <span id="current-moving-average-label" class="text-style column-style"
       >30-day moving average:
     </span>
-    <span id="current-moving-average" class="text-style column-style"
-      ><div class="lds-ellipsis">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div></div
-    ></span>
+    <span id="current-moving-average" class="text-style column-style"></span>
   </span>
   <div id="summary" class="summary-style"></div>
 </div>
