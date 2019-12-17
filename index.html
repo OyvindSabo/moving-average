@@ -7,7 +7,6 @@
   }
   .lds-ellipsis div {
     position: absolute;
-    top: 5px;
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -71,6 +70,7 @@
   .container-style {
     text-align: left;
     display: inline-block;
+    margin: 20px;
   }
   .input-style {
     background: #ecf0f1;
@@ -83,6 +83,13 @@
     border: none;
     border-radius: 5px;
     outline: none;
+  }
+  .summary-style {
+    font-size: 40px;
+    font-family: Arial Black;
+    color: #2c3e50;
+    padding: 5px;
+    margin: 5px;
   }
   .text-style {
     font-size: 20px;
@@ -177,8 +184,14 @@
         .then(res =>
           res.json().then(res => {
             const priceHistory = res.prices;
-            window.dispatchEvent(
-              new CustomEvent('SET_PRICE_HISTORY', { detail: { priceHistory } })
+            setTimeout(
+              () =>
+                window.dispatchEvent(
+                  new CustomEvent('SET_PRICE_HISTORY', {
+                    detail: { priceHistory },
+                  })
+                ),
+              500
             );
           })
         )
@@ -230,6 +243,18 @@
         document.getElementById(
           'current-moving-average'
         ).innerHTML = movingAverage.toFixed(2);
+
+        // Render summary
+        const priceIsHigherThanMovingAverage = currentPrice > movingAverage;
+        const differenceFactor = priceIsHigherThanMovingAverage
+          ? (currentPrice / movingAverage - 1) * 100
+          : (1 - currentPrice / movingAverage) * 100;
+        const preposition = priceIsHigherThanMovingAverage ? 'above' : 'below';
+        const color = priceIsHigherThanMovingAverage ? 'green' : 'red';
+        const summaryMessage = `The current price is <span style="color:${color};">${differenceFactor.toFixed(
+          2
+        )}%</span> ${preposition} the ${movingAveragePeriod}-day moving average.`;
+        document.getElementById('summary').innerHTML = summaryMessage;
       }
     }
   }
@@ -291,6 +316,7 @@
         <div></div></div
     ></span>
   </span>
+  <div id="summary" class="summary-style"></div>
 </div>
 
 <!--Add change listeners to HTML-->
