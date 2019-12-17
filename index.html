@@ -1,3 +1,30 @@
+<style>
+  .root-style {
+    text-align: center;
+  }
+  .column-style {
+    display: inline-block;
+    width: 200px;
+  }
+  .container-style {
+    text-align: left;
+    display: inline-block;
+  }
+  .input-style {
+    background: #ecf0f1;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+  }
+  .text-style {
+    font-size: 20px;
+    font-family: Arial Black;
+    color: #2c3e50;
+    padding: 5px;
+    margin: 5px;
+  }
+</style>
+
 <script>
   const validateMovingAveragePeriod = movingAveragePeriod =>
     Math.max(Math.min(movingAveragePeriod, 360), 1);
@@ -105,11 +132,14 @@
   }
 </script>
 
-<body style="background:DarkSlateGrey;background-image: linear-gradient(DarkSlateGrey, Black);">
-  <div style="width:100%;">
-  <span id="widget-container" style="margin-left:50%;margin-top:50px;display:inline-block;transform:translate(-50%, 0);background:SlateGrey;padding:50px;">
-    <span style="display:inline-block;width:200px;">Cryptocurrency</span>
-    <select id="cryptocurrency-select" style="width:200px;">
+<div class="root-style">
+  <span id="widget-container" class="container-style">
+    <span class="text-style column-style">Cryptocurrency</span>
+    <select
+      id="cryptocurrency-select"
+      class="text-style column-style"
+      style="width:200px;"
+    >
       <option value="bitcoin">Bitcoin</option>
       <option value="ethereum">Ethereum</option>
       <option value="ripple">XRP</option>
@@ -117,8 +147,8 @@
       <option value="bitcoin-cash">Bitcoin Cash</option>
       <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins--> </select
     ><br />
-    <span style="display:inline-block;width:200px;">vs. currency</span>
-    <select id="vs-currency-select" style="width:200px;">
+    <span class="text-style column-style">vs. currency</span>
+    <select id="vs-currency-select" class="text-style column-style">
       <option value="usd">United States dollar</option>
       <option value="eur">Euro</option>
       <option value="jpy">Japanese yen</option>
@@ -126,28 +156,24 @@
       <!--TODO: Add the rest of the currencies from here: https://api.coingecko.com/api/v3/coins-->
     </select>
     <br />
-    <span style="display:inline-block;width:200px;"
-      >Moving average period:
-    </span>
+    <span class="text-style column-style">Moving average period: </span>
     <input
       id="moving-average-period-input"
+      class="input-style text-style column-style"
       type="number"
       value="30"
       style="width:200px;"
     />
     <br />
-    <span style="display:inline-block;width:200px;">Current price: </span>
-    <span id="current-price" style="width:200px;"></span>
+    <span class="text-style column-style">Current price: </span>
+    <span id="current-price" class="text-style column-style"></span>
     <br />
-    <span
-      id="current-moving-average-label"
-      style="display:inline-block;width:200px;"
+    <span id="current-moving-average-label" class="text-style column-style"
       >30-day moving average:
     </span>
-    <span id="current-moving-average" style="width:200px;""></span>
+    <span id="current-moving-average" class="text-style column-style"></span>
   </span>
-  </div>
-</body>
+</div>
 
 <!--Add change listeners to HTML-->
 <script>
