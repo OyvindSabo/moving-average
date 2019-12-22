@@ -288,6 +288,12 @@
         'cryptocurrency-select'
       );
       cryptocurrencySelect.options.selectedIndex = indexOfSelectedCryptocurrency;
+
+      const indexOfSelectedVsCurrency = Object.keys(vsCurrencies).indexOf(
+        state.vsCurrencyId
+      );
+      const vsCurrencySelect = document.getElementById('vs-currency-select');
+      vsCurrencySelect.options.selectedIndex = indexOfSelectedVsCurrency;
     }
 
     render(state) {
