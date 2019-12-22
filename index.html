@@ -246,6 +246,8 @@
           .reduce((sum, [timestamp, price]) => price + sum, 0) /
         movingAveragePeriod
       : null;
+
+  const randomPriceString = () => (Math.random() * 10000).toFixed(2);
 </script>
 
 <!-- Reducers -->
@@ -380,11 +382,11 @@
 
       if (isLoading) {
         // Repeatedly render random current price
-        const randomCurrentPrice = (Math.random() * 10000).toFixed(2);
+        const randomCurrentPrice = randomPriceString();
         document.getElementById('current-price').innerHTML = randomCurrentPrice;
 
         // Repeatedly render random moving average
-        const randomMovingAverage = (Math.random() * 10000).toFixed(2);
+        const randomMovingAverage = randomPriceString();
         document.getElementById(
           'current-moving-average'
         ).innerHTML = randomMovingAverage;
