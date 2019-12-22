@@ -235,6 +235,9 @@
     )}%</span> ${preposition} the ${movingAveragePeriod}-day moving average.`;
     return summaryMessage;
   };
+
+  const getCurrentPrice = priceHistory =>
+    priceHistory.length ? priceHistory.slice(-1)[0][1] : null;
 </script>
 
 <!-- Reducers -->
@@ -363,13 +366,8 @@
       movingAveragePeriodInput.value = state.movingAveragePeriod;
     }
 
-    render(state) {
-      const { priceHistory } = state;
-      const currentPrice = priceHistory.length
-        ? priceHistory.slice(-1)[0][1]
-        : null;
-
-      const movingAveragePeriod = state.movingAveragePeriod;
+    render({ priceHistory, movingAveragePeriod, isLoading }) {
+      const currentPrice = getCurrentPrice(priceHistory);
 
       const movingAverage = priceHistory.length
         ? priceHistory
@@ -378,7 +376,7 @@
           movingAveragePeriod
         : null;
 
-      if (state.isLoading) {
+      if (isLoading) {
         // Repeatedly render random current price
         const randomCurrentPrice = (Math.random() * 10000).toFixed(2);
         document.getElementById('current-price').innerHTML = randomCurrentPrice;
