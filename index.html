@@ -178,6 +178,13 @@
     );
   };
 
+  const getParametersFromHash = hash =>
+    hash
+      .split('/')
+      .filter(Boolean)
+      .filter(element => element !== '#')
+      .filter(element => element !== '#!');
+
   const getURIState = () => {
     const state = {
       days: 360,
@@ -188,10 +195,7 @@
       isLoading: true,
     };
     if (!location.hash) return state;
-    const parameters = location.hash
-      .split('/')
-      .filter(Boolean)
-      .filter(el => el !== '#');
+    const parameters = getParametersFromHash(location.hash);
     if (parameters.length !== 3) return state;
     if (isValidCryptocurrency(parameters[0], cryptocurrencies)) {
       state.cryptocurrencyId = parameters[0];
@@ -200,12 +204,15 @@
       state.vsCurrencyId = parameters[1];
     }
     if (isValidMovingAveragePeriod(parameters[2]))
-      state.movingAveragePeriod = parseInt(parameters[2]);
+      state.movingAveragePeriod = parameters[2];
     return state;
   };
 
-  const setUriFromState = state => {
-    const { cryptocurrencyId, vsCurrencyId, movingAveragePeriod } = state;
+  const setUriFromState = ({
+    cryptocurrencyId,
+    vsCurrencyId,
+    movingAveragePeriod,
+  }) => {
     const hash = `#!/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
     location.hash = hash;
   };
