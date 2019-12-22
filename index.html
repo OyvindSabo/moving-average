@@ -240,34 +240,30 @@
 <script>
   class Store {
     constructor() {
-      this.state = getURIState();
-      setUriFromState(this.state);
+      this.setState(getURIState());
 
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
-        this.state = this.onSetPriceHistory(this.state, detail);
-        setUriFromState(this.state);
-        this.render(this.state);
+        this.setState(this.onSetPriceHistory(this.state, detail));
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
-        this.state = this.onSetCryptocurrency(this.state, detail);
-        setUriFromState(this.state);
+        this.setState(this.onSetCryptocurrency(this.state, detail));
         this.fetchPriceHistory(this.state);
-        this.render(this.state);
       });
       window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
-        this.state = this.onSetVsCurrency(this.state, detail);
-        setUriFromState(this.state);
+        this.setState(this.onSetVsCurrency(this.state, detail));
         this.fetchPriceHistory(this.state);
-        this.render(this.state);
       });
       window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
-        this.state = this.onSetMovingAveragePeriod(this.state, detail);
-        setUriFromState(this.state);
-        this.render(this.state);
+        this.setState(this.onSetMovingAveragePeriod(this.state, detail));
       });
       this.fetchPriceHistory(this.state);
       this.initialRender(this.state);
+    }
+
+    setState(state) {
+      this.state = state;
+      setUriFromState(this.state);
       this.render(this.state);
     }
 
