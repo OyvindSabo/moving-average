@@ -155,6 +155,22 @@
 
 <!-- utils -->
 <script>
+  const isValidCryptocurrency = (cryptocurrencyId, cryptocurrencies) =>
+    Object.keys(cryptocurrencies).includes(cryptocurrencyId);
+
+  const isValidVsCurrency = (vsCurrencyId, vsCurrencies) =>
+    Object.keys(vsCurrencies).includes(vsCurrencyId);
+
+  const isValidMovingAveragePeriod = movingAveragePeriod => {
+    const parsedInt = parseInt(movingAveragePeriod);
+    return (
+      !isNaN(parsedInt) &&
+      Number(movingAveragePeriod) === parsedInt &&
+      parsedInt > 0 &&
+      parsedInt <= 360
+    );
+  };
+
   const getURIState = () => {
     const state = {
       days: 360,
@@ -170,9 +186,14 @@
       .filter(Boolean)
       .filter(el => el !== '#');
     if (parameters.length !== 3) return state;
-    state.cryptocurrencyId = parameters[0];
-    state.vsCurrencyId = parameters[1];
-    state.movingAveragePeriod = parameters[2];
+    if (isValidCryptocurrency(parameters[0], cryptocurrencies)) {
+      state.cryptocurrencyId = parameters[0];
+    }
+    if (isValidVsCurrency(parameters[1], vsCurrencies)) {
+      state.vsCurrencyId = parameters[1];
+    }
+    if (isValidMovingAveragePeriod(parameters[2]))
+      state.movingAveragePeriod = parseInt(parameters[2]);
     return state;
   };
 
