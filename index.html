@@ -206,7 +206,7 @@
 
   const setUriFromState = state => {
     const { cryptocurrencyId, vsCurrencyId, movingAveragePeriod } = state;
-    const hash = `#/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
+    const hash = `#!/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
     location.hash = hash;
   };
 
@@ -350,6 +350,18 @@
 
     render(state) {
       const { priceHistory } = state;
+      const currentPrice = priceHistory.length
+        ? priceHistory.slice(-1)[0][1]
+        : null;
+
+      const movingAveragePeriod = state.movingAveragePeriod;
+
+      const movingAverage = priceHistory.length
+        ? priceHistory
+            .slice(-movingAveragePeriod)
+            .reduce((sum, [timestamp, price]) => price + sum, 0) /
+          movingAveragePeriod
+        : null;
 
       if (state.isLoading) {
         // Repeatedly render random current price
@@ -362,26 +374,30 @@
           'current-moving-average'
         ).innerHTML = randomMovingAverage;
 
+        if (currentPrice && movingAverage) {
+          /* Render summary to handle the cases where the user updates the
+             moving average period while new price data is still loading */
+          const summary = getSummary(
+            currentPrice,
+            movingAverage,
+            movingAveragePeriod
+          );
+          document.getElementById('summary').innerHTML = summary;
+        }
+
         setTimeout(() => this.render(this.state), 0);
       } else {
         // Render current price
-        const currentPrice = priceHistory.slice(-1)[0][1];
         document.getElementById(
           'current-price'
         ).innerHTML = currentPrice.toFixed(2);
 
         // Render moving average label
-        const movingAveragePeriod = state.movingAveragePeriod;
         document.getElementById(
           'current-moving-average-label'
         ).innerHTML = `${movingAveragePeriod}-day moving average:`;
 
         // Render moving average
-        const movingAverage =
-          priceHistory
-            .slice(-movingAveragePeriod)
-            .reduce((sum, [timestamp, price]) => price + sum, 0) /
-          movingAveragePeriod;
         document.getElementById(
           'current-moving-average'
         ).innerHTML = movingAverage.toFixed(2);
