@@ -281,6 +281,7 @@
 
     // Sets the correct initial input based on data from the url
     initialRender(state) {
+      // Set the correct initial cryptocurrency input based on uri
       const indexOfSelectedCryptocurrency = Object.keys(
         cryptocurrencies
       ).indexOf(state.cryptocurrencyId);
@@ -289,11 +290,18 @@
       );
       cryptocurrencySelect.options.selectedIndex = indexOfSelectedCryptocurrency;
 
+      // Set the correct initial vs currency input based on uri
       const indexOfSelectedVsCurrency = Object.keys(vsCurrencies).indexOf(
         state.vsCurrencyId
       );
       const vsCurrencySelect = document.getElementById('vs-currency-select');
       vsCurrencySelect.options.selectedIndex = indexOfSelectedVsCurrency;
+
+      // Set the correct initial moving average period input based on uri
+      const movingAveragePeriodInput = document.getElementById(
+        'moving-average-period-input'
+      );
+      movingAveragePeriodInput.value = state.movingAveragePeriod;
     }
 
     render(state) {
