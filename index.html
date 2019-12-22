@@ -197,6 +197,12 @@
     return state;
   };
 
+  const setUriFromState = state => {
+    const { cryptocurrencyId, vsCurrencyId, movingAveragePeriod } = state;
+    const hash = `#/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
+    location.hash = hash;
+  };
+
   const getValidatedMovingAveragePeriod = movingAveragePeriod =>
     Math.max(Math.min(movingAveragePeriod, 360), 1);
 
@@ -218,24 +224,29 @@
   class Store {
     constructor() {
       this.state = getURIState();
+      setUriFromState(this.state);
 
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
         this.state = this.onSetPriceHistory(this.state, detail);
+        setUriFromState(this.state);
         this.render(this.state);
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
         this.state = this.onSetCryptocurrency(this.state, detail);
+        setUriFromState(this.state);
         this.fetchPriceHistory(this.state);
         this.render(this.state);
       });
       window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
         this.state = this.onSetVsCurrency(this.state, detail);
+        setUriFromState(this.state);
         this.fetchPriceHistory(this.state);
         this.render(this.state);
       });
       window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
         this.state = this.onSetMovingAveragePeriod(this.state, detail);
+        setUriFromState(this.state);
         this.render(this.state);
       });
       this.fetchPriceHistory(this.state);
@@ -275,7 +286,9 @@
       return detail.movingAveragePeriod
         ? {
             ...previousState,
-            movingAveragePeriod: detail.movingAveragePeriod,
+            movingAveragePeriod: getValidatedMovingAveragePeriod(
+              detail.movingAveragePeriod
+            ),
           }
         : previousState;
     }
@@ -348,9 +361,7 @@
         ).innerHTML = currentPrice.toFixed(2);
 
         // Render moving average label
-        const movingAveragePeriod = getValidatedMovingAveragePeriod(
-          state.movingAveragePeriod
-        );
+        const movingAveragePeriod = state.movingAveragePeriod;
         document.getElementById(
           'current-moving-average-label'
         ).innerHTML = `${movingAveragePeriod}-day moving average:`;
