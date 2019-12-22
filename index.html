@@ -214,6 +214,9 @@
     Math.max(Math.min(movingAveragePeriod, 360), 1);
 
   const getSummary = (currentPrice, movingAverage, movingAveragePeriod) => {
+    if (currentPrice === movingAverage) {
+      return `The current price is equal to the ${movingAveragePeriod}-day moving average`;
+    }
     const priceIsHigherThanMovingAverage = currentPrice > movingAverage;
     const differenceFactor = priceIsHigherThanMovingAverage
       ? (currentPrice / movingAverage - 1) * 100
