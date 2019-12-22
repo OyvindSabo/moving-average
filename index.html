@@ -342,7 +342,7 @@
           detail: { state: this.state },
         })
       );
-      this.initialRender(this.state);
+      this.renderInput(this.state);
     }
 
     setState(state) {
@@ -352,7 +352,7 @@
     }
 
     // Sets the correct initial input based on data from the url
-    initialRender(state) {
+    renderInput(state) {
       // Set the correct initial cryptocurrency input based on uri
       const indexOfSelectedCryptocurrency = Object.keys(
         cryptocurrencies
