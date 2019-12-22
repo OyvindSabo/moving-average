@@ -185,18 +185,27 @@
       .filter(element => element !== '#')
       .filter(element => element !== '#!');
 
-  const getURIState = () => {
-    const state = {
-      days: 360,
-      cryptocurrencyId: 'bitcoin',
-      vsCurrencyId: 'usd',
-      priceHistory: [],
-      movingAveragePeriod: 30,
-      isLoading: true,
-    };
+  const getURIState = previousState => {
     if (!location.hash) return state;
     const parameters = getParametersFromHash(location.hash);
     if (parameters.length !== 3) return state;
+    return {
+      ...previousState,
+      cryptocurrencyId: isValidCryptocurrency(parameters[0], cryptocurrencies)
+        ? parameters[0]
+        : previousState.cryptocurrencyId,
+      vsCurrencyId: isValidVsCurrency(parameters[1], vsCurrencies)
+        ? parameters[1]
+        : previousState.vsCurrencyId,
+      movingAveragePeriod: isValidMovingAveragePeriod(parameters[2])
+        ? parameters[2]
+        : previousState.movingAveragePeriod,
+    };
+    const state = {
+      cryptocurrencyId: previousState.cryptocurrencyId,
+      vsCurrencyId: previousState.vsCurrencyId,
+      movingAveragePeriod: previousState.movingAveragePeriod,
+    };
     if (isValidCryptocurrency(parameters[0], cryptocurrencies)) {
       state.cryptocurrencyId = parameters[0];
     }
@@ -312,7 +321,20 @@
 <script>
   class Store {
     constructor() {
+      this.state = {
+        days: 360,
+        cryptocurrencyId: 'bitcoin',
+        vsCurrencyId: 'usd',
+        priceHistory: [],
+        movingAveragePeriod: 30,
+        isLoading: true,
+      };
       this.setState(getURIState());
+
+      window.addEventListener('hashchange', () => {
+        this.setState(getURIState());
+        this.renderInput(this.state);
+      });
 
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
@@ -346,7 +368,7 @@
     }
 
     setState(state) {
-      this.state = state;
+      Object.assign(this.state, state);
       setUriFromState(this.state);
       this.render(this.state);
     }
