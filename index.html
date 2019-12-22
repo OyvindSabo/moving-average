@@ -201,20 +201,6 @@
         ? parameters[2]
         : previousState.movingAveragePeriod,
     };
-    const state = {
-      cryptocurrencyId: previousState.cryptocurrencyId,
-      vsCurrencyId: previousState.vsCurrencyId,
-      movingAveragePeriod: previousState.movingAveragePeriod,
-    };
-    if (isValidCryptocurrency(parameters[0], cryptocurrencies)) {
-      state.cryptocurrencyId = parameters[0];
-    }
-    if (isValidVsCurrency(parameters[1], vsCurrencies)) {
-      state.vsCurrencyId = parameters[1];
-    }
-    if (isValidMovingAveragePeriod(parameters[2]))
-      state.movingAveragePeriod = parameters[2];
-    return state;
   };
 
   const setUriFromState = ({
