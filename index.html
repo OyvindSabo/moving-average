@@ -218,6 +218,7 @@
         this.render(this.state);
       });
       this.fetchPriceHistory(this.state);
+      this.initialRender(this.state);
       this.render(this.state);
     }
 
@@ -276,6 +277,17 @@
         .catch(error => {
           console.log('error: ', error);
         });
+    }
+
+    // Sets the correct initial input based on data from the url
+    initialRender(state) {
+      const indexOfSelectedCryptocurrency = Object.keys(
+        cryptocurrencies
+      ).indexOf(state.cryptocurrencyId);
+      const cryptocurrencySelect = document.getElementById(
+        'cryptocurrency-select'
+      );
+      cryptocurrencySelect.options.selectedIndex = indexOfSelectedCryptocurrency;
     }
 
     render(state) {
