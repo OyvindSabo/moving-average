@@ -1,407 +1,453 @@
-<style>
-  .root-style {
-    text-align: center;
-  }
-  .column-style {
-    display: inline-block;
-    width: 250px;
-  }
-  .container-style {
-    text-align: left;
-    display: inline-block;
-    margin: 20px;
-  }
-  .input-style {
-    background: #ecf0f1;
-    border: none;
-    border-radius: 5px;
-    outline: none;
-  }
-  .select-style {
-    background: #ecf0f1;
-    border: none;
-    border-radius: 5px;
-    outline: none;
-  }
-  .summary-style {
-    font-size: 40px;
-    font-family: Arial Black;
-    color: #2c3e50;
-    padding: 5px;
-    margin: 5px;
-  }
-  .text-style {
-    font-size: 20px;
-    font-family: Arial Black;
-    color: #2c3e50;
-    padding: 5px;
-    margin: 5px;
-  }
-  .footer-style {
-    box-sizing: border-box;
-    position: fixed;
-    padding: 20px;
-    bottom: 0;
-    width: 100%;
-  }
-</style>
-
-<!-- constants -->
-<script>
-  const cryptocurrencies = {
-    bitcoin: 'Bitcoin',
-    ethereum: 'Ethereum',
-    ripple: 'XRP',
-    tether: 'Tether',
-    'bitcoin-cash': 'Bitcoin Cash',
-    litecoin: 'Litecoin',
-    eos: 'EOS',
-    binancecoin: 'Binance Coin',
-    'bitcoin-cash-sv': 'Bitcoin SV',
-    tezos: 'Tezos',
-    cardano: 'Cardano',
-    stellar: 'Stellar',
-    'leo-token': 'LEO Token',
-    tron: 'TRON',
-    monero: 'Monero',
-    cosmos: 'Cosmos',
-    okb: 'OKB',
-    chainlink: 'ChainLink',
-    'huobi-token': 'Huobi Token',
-    neo: 'NEO',
-    'usd-coin': 'USD Coin',
-    iota: 'IOTA',
-    'ethereum-classic': 'Ethereum Classic',
-    dash: 'Dash',
-    'crypto-com-chain': 'Crypto.com Coin',
-    ontology: 'Ontology',
-    maker: 'Maker',
-    vechain: 'VeChain',
-    nem: 'NEM',
-    dogecoin: 'Dogecoin',
-    'paxos-standard': 'Paxos Standard',
-    zcash: 'Zcash',
-    'basic-attention-token': 'Basic Attention Token',
-    decred: 'Decred',
-    'true-usd': 'TrueUSD',
-    qtum: 'Qtum',
-    algorand: 'Algorand',
-    havven: 'Synthetix Network Token',
-    '0x': '0x',
-    seele: 'Seele',
-    ravencoin: 'Ravencoin',
-    holotoken: 'Holo',
-    bytom: 'Bytom',
-    'nervos-network': 'Nervos Network',
-    augur: 'Augur',
-    'theta-token': 'Theta Network',
-    waves: 'Waves',
-    'bitcoin-gold': 'Bitcoin Gold',
-    nano: 'Nano',
-    omisego: 'OmiseGO',
-  };
-
-  const vsCurrencies = {
-    aed: 'United Arab Emirates dirham',
-    ars: 'Argentine peso',
-    aud: 'Australian dollar',
-    bch: 'Bitcoin Cash',
-    bdt: 'Bangladeshi taka',
-    bhd: 'Bahraini dinar',
-    bmd: 'Bermudian dollar',
-    bnb: 'Binance Coin',
-    brl: 'Brazilian real',
-    btc: 'Bitcoin',
-    cad: 'Canadian dollar',
-    chf: 'Swiss franc',
-    clp: 'Chilean peso',
-    cny: 'Renminbi',
-    czk: 'Czech koruna',
-    dkk: 'Danish krone',
-    eos: 'EOS',
-    eth: 'Ethereum',
-    eur: 'Euro',
-    gbp: 'Pound sterling',
-    hkd: 'Hong Kong dollar',
-    huf: 'Hungarian forint',
-    idr: 'Indonesian rupiah',
-    ils: 'Israeli new shekel',
-    inr: 'Indian rupee',
-    jpy: 'Japanese yen',
-    krw: 'South Korean won',
-    kwd: 'Kuwaiti dinar',
-    lkr: 'Sri Lankan rupee',
-    ltc: 'Litecoin',
-    mmk: 'Burmese kyat',
-    mxn: 'Mexican peso',
-    myr: 'Malaysian ringgit',
-    nok: 'Norwegian krone',
-    nzd: 'New Zealand dollar',
-    php: 'Philippine peso',
-    pkr: 'Pakistani rupee',
-    pln: 'Polish złoty',
-    rub: 'Russian ruble',
-    sar: 'Saudi riyal',
-    sek: 'Swedish krona',
-    sgd: 'Singapore dollar',
-    thb: 'Thai baht',
-    try: 'Turkish lira',
-    twd: 'New Taiwan dollar',
-    uah: 'Ukrainian hryvnia',
-    usd: 'United States dollar',
-    vef: 'Venezuelan bolívar',
-    vnd: 'Vietnamese đồng',
-    xag: 'Silver Ounce',
-    xau: 'Gold Ounce',
-    xdr: 'IMF Special Drawing Rights',
-    xlm: 'Stellar',
-    xrp: 'XRP',
-    zar: 'South African rand',
-  };
-</script>
-
-<!-- utils -->
-<script>
-  const isValidCryptocurrency = (cryptocurrencyId, cryptocurrencies) =>
-    Object.keys(cryptocurrencies).includes(cryptocurrencyId);
-
-  const isValidVsCurrency = (vsCurrencyId, vsCurrencies) =>
-    Object.keys(vsCurrencies).includes(vsCurrencyId);
-
-  const isValidMovingAveragePeriod = movingAveragePeriod => {
-    const parsedInt = parseInt(movingAveragePeriod);
-    return (
-      !isNaN(parsedInt) &&
-      Number(movingAveragePeriod) === parsedInt &&
-      parsedInt > 0 &&
-      parsedInt <= 360
-    );
-  };
-
-  const getParametersFromHash = hash =>
-    hash
-      .split('/')
-      .filter(Boolean)
-      .filter(element => element !== '#')
-      .filter(element => element !== '#!');
-
-  const getURIState = previousState => {
-    if (!location.hash) return state;
-    const parameters = getParametersFromHash(location.hash);
-    if (parameters.length !== 3) return state;
-    return {
-      ...previousState,
-      cryptocurrencyId: isValidCryptocurrency(parameters[0], cryptocurrencies)
-        ? parameters[0]
-        : previousState.cryptocurrencyId,
-      vsCurrencyId: isValidVsCurrency(parameters[1], vsCurrencies)
-        ? parameters[1]
-        : previousState.vsCurrencyId,
-      movingAveragePeriod: isValidMovingAveragePeriod(parameters[2])
-        ? parameters[2]
-        : previousState.movingAveragePeriod,
-    };
-  };
-
-  const setUriFromState = ({
-    cryptocurrencyId,
-    vsCurrencyId,
-    movingAveragePeriod,
-  }) => {
-    const hash = `#!/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
-    location.hash = hash;
-  };
-
-  const getValidatedMovingAveragePeriod = movingAveragePeriod =>
-    Math.max(Math.min(movingAveragePeriod, 360), 1);
-
-  const getSummary = (currentPrice, movingAverage, movingAveragePeriod) => {
-    if (currentPrice === movingAverage) {
-      return `The current price is equal to the ${movingAveragePeriod}-day moving average`;
+<head>
+  <!--
+┏━━━━━━━┳━━━━━━━┳━┓   ┏━┳━┓     ┏━━━━━━━┳━━━━━━━┓
+┃ ┏━━━━━┻━━┓ ┏━━┫ ┃   ┃ ┃ ┃     ┃ ┏━━━━━┫ ┏━━━━━┛
+┃ ┗━━━━━┓  ┃ ┃  ┃ ┗━━━┛ ┃ ┃     ┃ ┗━━━━━┫ ┗━━━━━┓
+┗━━━━━┓ ┃  ┃ ┃  ┗━━┓ ┏━━┫ ┃     ┃ ┏━━━━━┻━━━━━┓ ┃
+┏━━━━━┛ ┃  ┃ ┃     ┃ ┃  ┃ ┗━━━━━┫ ┗━━━━━┳━━━━━┛ ┃
+┗━━━━━━━┛  ┗━┛     ┗━┛  ┗━━━━━━━┻━━━━━━━┻━━━━━━━┛
+-->
+  <style>
+    .root-style {
+      text-align: center;
     }
-    const priceIsHigherThanMovingAverage = currentPrice > movingAverage;
-    const differenceFactor = priceIsHigherThanMovingAverage
-      ? (currentPrice / movingAverage - 1) * 100
-      : (1 - currentPrice / movingAverage) * 100;
-    const preposition = priceIsHigherThanMovingAverage ? 'above' : 'below';
-    const color = priceIsHigherThanMovingAverage ? 'green' : 'red';
-    const summaryMessage = `The current price is <span style="color:${color};">${differenceFactor.toFixed(
-      2
-    )}%</span> ${preposition} the ${movingAveragePeriod}-day moving average.`;
-    return summaryMessage;
-  };
+    .column-style {
+      display: inline-block;
+      width: 250px;
+    }
+    .container-style {
+      text-align: left;
+      display: inline-block;
+      margin: 20px;
+    }
+    .input-style {
+      background: #ecf0f1;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+    .select-style {
+      background: #ecf0f1;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+    .summary-style {
+      font-size: 40px;
+      font-family: Arial Black;
+      color: #2c3e50;
+      padding: 5px;
+      margin: 5px;
+    }
+    .text-style {
+      font-size: 20px;
+      font-family: Arial Black;
+      color: #2c3e50;
+      padding: 5px;
+      margin: 5px;
+    }
+    .footer-style {
+      box-sizing: border-box;
+      position: fixed;
+      padding: 20px;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
 
-  const getCurrentPrice = priceHistory =>
-    priceHistory.length ? priceHistory.slice(-1)[0][1] : null;
+  <!-- constants -->
+  <script>
+    const cryptocurrencies = {
+      bitcoin: 'Bitcoin',
+      ethereum: 'Ethereum',
+      ripple: 'XRP',
+      tether: 'Tether',
+      'bitcoin-cash': 'Bitcoin Cash',
+      litecoin: 'Litecoin',
+      eos: 'EOS',
+      binancecoin: 'Binance Coin',
+      'bitcoin-cash-sv': 'Bitcoin SV',
+      tezos: 'Tezos',
+      cardano: 'Cardano',
+      stellar: 'Stellar',
+      'leo-token': 'LEO Token',
+      tron: 'TRON',
+      monero: 'Monero',
+      cosmos: 'Cosmos',
+      okb: 'OKB',
+      chainlink: 'ChainLink',
+      'huobi-token': 'Huobi Token',
+      neo: 'NEO',
+      'usd-coin': 'USD Coin',
+      iota: 'IOTA',
+      'ethereum-classic': 'Ethereum Classic',
+      dash: 'Dash',
+      'crypto-com-chain': 'Crypto.com Coin',
+      ontology: 'Ontology',
+      maker: 'Maker',
+      vechain: 'VeChain',
+      nem: 'NEM',
+      dogecoin: 'Dogecoin',
+      'paxos-standard': 'Paxos Standard',
+      zcash: 'Zcash',
+      'basic-attention-token': 'Basic Attention Token',
+      decred: 'Decred',
+      'true-usd': 'TrueUSD',
+      qtum: 'Qtum',
+      algorand: 'Algorand',
+      havven: 'Synthetix Network Token',
+      '0x': '0x',
+      seele: 'Seele',
+      ravencoin: 'Ravencoin',
+      holotoken: 'Holo',
+      bytom: 'Bytom',
+      'nervos-network': 'Nervos Network',
+      augur: 'Augur',
+      'theta-token': 'Theta Network',
+      waves: 'Waves',
+      'bitcoin-gold': 'Bitcoin Gold',
+      nano: 'Nano',
+      omisego: 'OmiseGO',
+    };
 
-  const getMovingAverage = (priceHistory, movingAveragePeriod) =>
-    priceHistory.length
-      ? priceHistory
-          .slice(-movingAveragePeriod)
-          .reduce((sum, [timestamp, price]) => price + sum, 0) /
-        movingAveragePeriod
-      : null;
+    const vsCurrencies = {
+      aed: 'United Arab Emirates dirham',
+      ars: 'Argentine peso',
+      aud: 'Australian dollar',
+      bch: 'Bitcoin Cash',
+      bdt: 'Bangladeshi taka',
+      bhd: 'Bahraini dinar',
+      bmd: 'Bermudian dollar',
+      bnb: 'Binance Coin',
+      brl: 'Brazilian real',
+      btc: 'Bitcoin',
+      cad: 'Canadian dollar',
+      chf: 'Swiss franc',
+      clp: 'Chilean peso',
+      cny: 'Renminbi',
+      czk: 'Czech koruna',
+      dkk: 'Danish krone',
+      eos: 'EOS',
+      eth: 'Ethereum',
+      eur: 'Euro',
+      gbp: 'Pound sterling',
+      hkd: 'Hong Kong dollar',
+      huf: 'Hungarian forint',
+      idr: 'Indonesian rupiah',
+      ils: 'Israeli new shekel',
+      inr: 'Indian rupee',
+      jpy: 'Japanese yen',
+      krw: 'South Korean won',
+      kwd: 'Kuwaiti dinar',
+      lkr: 'Sri Lankan rupee',
+      ltc: 'Litecoin',
+      mmk: 'Burmese kyat',
+      mxn: 'Mexican peso',
+      myr: 'Malaysian ringgit',
+      nok: 'Norwegian krone',
+      nzd: 'New Zealand dollar',
+      php: 'Philippine peso',
+      pkr: 'Pakistani rupee',
+      pln: 'Polish złoty',
+      rub: 'Russian ruble',
+      sar: 'Saudi riyal',
+      sek: 'Swedish krona',
+      sgd: 'Singapore dollar',
+      thb: 'Thai baht',
+      try: 'Turkish lira',
+      twd: 'New Taiwan dollar',
+      uah: 'Ukrainian hryvnia',
+      usd: 'United States dollar',
+      vef: 'Venezuelan bolívar',
+      vnd: 'Vietnamese đồng',
+      xag: 'Silver Ounce',
+      xau: 'Gold Ounce',
+      xdr: 'IMF Special Drawing Rights',
+      xlm: 'Stellar',
+      xrp: 'XRP',
+      zar: 'South African rand',
+    };
+  </script>
+  <!--
+┏━┓   ┏━┳━━━━━━━┳━┳━┓     ┏━━━━━━━┓
+┃ ┃   ┃ ┣━━┓ ┏━━┫ ┃ ┃     ┃ ┏━━━━━┛
+┃ ┃   ┃ ┃  ┃ ┃  ┃ ┃ ┃     ┃ ┗━━━━━┓
+┃ ┃   ┃ ┃  ┃ ┃  ┃ ┃ ┃     ┗━━━━━┓ ┃
+┃ ┗━━━┛ ┃  ┃ ┃  ┃ ┃ ┗━━━━━┳━━━━━┛ ┃
+┗━━━━━━━┛  ┗━┛  ┗━┻━━━━━━━┻━━━━━━━┛
+-->
+  <script>
+    const isValidCryptocurrency = (cryptocurrencyId, cryptocurrencies) =>
+      Object.keys(cryptocurrencies).includes(cryptocurrencyId);
 
-  const randomPriceString = () => (Math.random() * 10000).toFixed(2);
-</script>
+    const isValidVsCurrency = (vsCurrencyId, vsCurrencies) =>
+      Object.keys(vsCurrencies).includes(vsCurrencyId);
 
-<!-- Reducers -->
-<script>
-  const onSetPriceHistory = (previousState, detail) =>
-    detail.priceHistory
-      ? {
-          ...previousState,
-          priceHistory: detail.priceHistory,
-          isLoading: false,
-        }
-      : previousState;
+    const isValidMovingAveragePeriod = movingAveragePeriod => {
+      const parsedInt = parseInt(movingAveragePeriod);
+      return (
+        !isNaN(parsedInt) &&
+        Number(movingAveragePeriod) === parsedInt &&
+        parsedInt > 0 &&
+        parsedInt <= 360
+      );
+    };
 
-  const onSetCryptocurrency = (previousState, detail) =>
-    detail.cryptocurrencyId
-      ? {
-          ...previousState,
-          cryptocurrencyId: detail.cryptocurrencyId,
-          isLoading: true,
-        }
-      : previousState;
+    const getParametersFromHash = hash =>
+      hash
+        .split('/')
+        .filter(Boolean)
+        .filter(element => element !== '#')
+        .filter(element => element !== '#!');
 
-  const onSetVsCurrency = (previousState, detail) =>
-    detail.vsCurrencyId.slice(-90)
-      ? {
-          ...previousState,
-          vsCurrencyId: detail.vsCurrencyId,
-          isLoading: true,
-        }
-      : previousState;
-
-  const onSetMovingAveragePeriod = (previousState, detail) =>
-    detail.movingAveragePeriod
-      ? {
-          ...previousState,
-          movingAveragePeriod: getValidatedMovingAveragePeriod(
-            detail.movingAveragePeriod
-          ),
-        }
-      : previousState;
-</script>
-
-<!-- Side effects -->
-<script>
-  const fetchPriceHistory = async state =>
-    fetch(
-      `https://api.coingecko.com/api/v3/coins/${state.cryptocurrencyId}/market_chart?vs_currency=${state.vsCurrencyId}&days=${state.days}`
-    ).then(result =>
-      result.json().then(({ prices: priceHistory }) => {
-        window.dispatchEvent(
-          new CustomEvent('SET_PRICE_HISTORY', {
-            detail: { priceHistory },
-          })
-        );
-      })
-    );
-  window.addEventListener('FETCH_PRICE_HISTORY', ({ detail }) => {
-    fetchPriceHistory(detail.state);
-  });
-</script>
-
-<script>
-  class Store {
-    constructor() {
-      this.state = {
-        days: 360,
-        cryptocurrencyId: 'bitcoin',
-        vsCurrencyId: 'usd',
-        priceHistory: [],
-        movingAveragePeriod: 30,
-        isLoading: true,
+    const getURIState = previousState => {
+      if (!location.hash) return state;
+      const parameters = getParametersFromHash(location.hash);
+      if (parameters.length !== 3) return state;
+      return {
+        ...previousState,
+        cryptocurrencyId: isValidCryptocurrency(parameters[0], cryptocurrencies)
+          ? parameters[0]
+          : previousState.cryptocurrencyId,
+        vsCurrencyId: isValidVsCurrency(parameters[1], vsCurrencies)
+          ? parameters[1]
+          : previousState.vsCurrencyId,
+        movingAveragePeriod: isValidMovingAveragePeriod(parameters[2])
+          ? parameters[2]
+          : previousState.movingAveragePeriod,
       };
-      this.setState(getURIState());
+    };
 
-      window.addEventListener('hashchange', () => {
-        this.setState(getURIState());
-        this.renderInput(this.state);
-      });
+    const setUriFromState = ({
+      cryptocurrencyId,
+      vsCurrencyId,
+      movingAveragePeriod,
+    }) => {
+      const hash = `#!/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
+      location.hash = hash;
+    };
 
-      // Bind actions to reducers
-      window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
-        this.setState(onSetPriceHistory(this.state, detail));
-      });
-      window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
-        this.setState(onSetCryptocurrency(this.state, detail));
-        window.dispatchEvent(
-          new CustomEvent('FETCH_PRICE_HISTORY', {
-            detail: { state: this.state },
-          })
-        );
-      });
-      window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
-        this.setState(onSetVsCurrency(this.state, detail));
-        window.dispatchEvent(
-          new CustomEvent('FETCH_PRICE_HISTORY', {
-            detail: { state: this.state },
-          })
-        );
-      });
-      window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
-        this.setState(onSetMovingAveragePeriod(this.state, detail));
-      });
-      window.dispatchEvent(
-        new CustomEvent('FETCH_PRICE_HISTORY', {
-          detail: { state: this.state },
+    const getValidatedMovingAveragePeriod = movingAveragePeriod =>
+      Math.max(Math.min(movingAveragePeriod, 360), 1);
+
+    const getSummary = (currentPrice, movingAverage, movingAveragePeriod) => {
+      if (currentPrice === movingAverage) {
+        return `The current price is equal to the ${movingAveragePeriod}-day moving average`;
+      }
+      const priceIsHigherThanMovingAverage = currentPrice > movingAverage;
+      const differenceFactor = priceIsHigherThanMovingAverage
+        ? (currentPrice / movingAverage - 1) * 100
+        : (1 - currentPrice / movingAverage) * 100;
+      const preposition = priceIsHigherThanMovingAverage ? 'above' : 'below';
+      const color = priceIsHigherThanMovingAverage ? 'green' : 'red';
+      const summaryMessage = `The current price is <span style="color:${color};">${differenceFactor.toFixed(
+        2
+      )}%</span> ${preposition} the ${movingAveragePeriod}-day moving average.`;
+      return summaryMessage;
+    };
+
+    const getCurrentPrice = priceHistory =>
+      priceHistory.length ? priceHistory.slice(-1)[0][1] : null;
+
+    const getMovingAverage = (priceHistory, movingAveragePeriod) =>
+      priceHistory.length
+        ? priceHistory
+            .slice(-movingAveragePeriod)
+            .reduce((sum, [timestamp, price]) => price + sum, 0) /
+          movingAveragePeriod
+        : null;
+
+    const randomPriceString = () => (Math.random() * 10000).toFixed(2);
+  </script>
+
+  <!-- Reducers -->
+  <script>
+    const onSetPriceHistory = (previousState, detail) =>
+      detail.priceHistory
+        ? {
+            ...previousState,
+            priceHistory: detail.priceHistory,
+            isLoading: false,
+          }
+        : previousState;
+
+    const onSetCryptocurrency = (previousState, detail) =>
+      detail.cryptocurrencyId
+        ? {
+            ...previousState,
+            cryptocurrencyId: detail.cryptocurrencyId,
+            isLoading: true,
+          }
+        : previousState;
+
+    const onSetVsCurrency = (previousState, detail) =>
+      detail.vsCurrencyId.slice(-90)
+        ? {
+            ...previousState,
+            vsCurrencyId: detail.vsCurrencyId,
+            isLoading: true,
+          }
+        : previousState;
+
+    const onSetMovingAveragePeriod = (previousState, detail) =>
+      detail.movingAveragePeriod
+        ? {
+            ...previousState,
+            movingAveragePeriod: getValidatedMovingAveragePeriod(
+              detail.movingAveragePeriod
+            ),
+          }
+        : previousState;
+  </script>
+
+  <!-- Side effects -->
+  <script>
+    const fetchPriceHistory = async state =>
+      fetch(
+        `https://api.coingecko.com/api/v3/coins/${state.cryptocurrencyId}/market_chart?vs_currency=${state.vsCurrencyId}&days=${state.days}`
+      ).then(result =>
+        result.json().then(({ prices: priceHistory }) => {
+          window.dispatchEvent(
+            new CustomEvent('SET_PRICE_HISTORY', {
+              detail: { priceHistory },
+            })
+          );
         })
       );
-      this.renderInput(this.state);
-    }
+    window.addEventListener('FETCH_PRICE_HISTORY', ({ detail }) => {
+      fetchPriceHistory(detail.state);
+    });
+  </script>
 
-    setState(state) {
-      Object.assign(this.state, state);
-      setUriFromState(this.state);
-      this.render(this.state);
-    }
+  <script>
+    class Store {
+      constructor() {
+        this.state = {
+          days: 360,
+          cryptocurrencyId: 'bitcoin',
+          vsCurrencyId: 'usd',
+          priceHistory: [],
+          movingAveragePeriod: 30,
+          isLoading: true,
+        };
+        this.setState(getURIState());
 
-    // Sets the correct initial input based on data from the url
-    renderInput(state) {
-      // Set the correct initial cryptocurrency input based on uri
-      const indexOfSelectedCryptocurrency = Object.keys(
-        cryptocurrencies
-      ).indexOf(state.cryptocurrencyId);
-      const cryptocurrencySelect = document.getElementById(
-        'cryptocurrency-select'
-      );
-      cryptocurrencySelect.options.selectedIndex = indexOfSelectedCryptocurrency;
+        window.addEventListener('hashchange', () => {
+          this.setState(getURIState());
+          this.renderInput(this.state);
+        });
 
-      // Set the correct initial vs currency input based on uri
-      const indexOfSelectedVsCurrency = Object.keys(vsCurrencies).indexOf(
-        state.vsCurrencyId
-      );
-      const vsCurrencySelect = document.getElementById('vs-currency-select');
-      vsCurrencySelect.options.selectedIndex = indexOfSelectedVsCurrency;
+        // Bind actions to reducers
+        window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
+          this.setState(onSetPriceHistory(this.state, detail));
+        });
+        window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
+          this.setState(onSetCryptocurrency(this.state, detail));
+          window.dispatchEvent(
+            new CustomEvent('FETCH_PRICE_HISTORY', {
+              detail: { state: this.state },
+            })
+          );
+        });
+        window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
+          this.setState(onSetVsCurrency(this.state, detail));
+          window.dispatchEvent(
+            new CustomEvent('FETCH_PRICE_HISTORY', {
+              detail: { state: this.state },
+            })
+          );
+        });
+        window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
+          this.setState(onSetMovingAveragePeriod(this.state, detail));
+        });
+        window.dispatchEvent(
+          new CustomEvent('FETCH_PRICE_HISTORY', {
+            detail: { state: this.state },
+          })
+        );
+        this.renderInput(this.state);
+      }
 
-      // Set the correct initial moving average period input based on uri
-      const movingAveragePeriodInput = document.getElementById(
-        'moving-average-period-input'
-      );
-      movingAveragePeriodInput.value = state.movingAveragePeriod;
-    }
+      setState(state) {
+        Object.assign(this.state, state);
+        setUriFromState(this.state);
+        this.render(this.state);
+      }
 
-    render({ priceHistory, movingAveragePeriod, isLoading }) {
-      const currentPrice = getCurrentPrice(priceHistory);
-      const movingAverage = getMovingAverage(priceHistory, movingAveragePeriod);
+      // Sets the correct initial input based on data from the url
+      renderInput(state) {
+        // Set the correct initial cryptocurrency input based on uri
+        const indexOfSelectedCryptocurrency = Object.keys(
+          cryptocurrencies
+        ).indexOf(state.cryptocurrencyId);
+        const cryptocurrencySelect = document.getElementById(
+          'cryptocurrency-select'
+        );
+        cryptocurrencySelect.options.selectedIndex = indexOfSelectedCryptocurrency;
 
-      if (isLoading) {
-        // Repeatedly render random current price
-        const randomCurrentPrice = randomPriceString();
-        document.getElementById('current-price').innerHTML = randomCurrentPrice;
+        // Set the correct initial vs currency input based on uri
+        const indexOfSelectedVsCurrency = Object.keys(vsCurrencies).indexOf(
+          state.vsCurrencyId
+        );
+        const vsCurrencySelect = document.getElementById('vs-currency-select');
+        vsCurrencySelect.options.selectedIndex = indexOfSelectedVsCurrency;
 
-        // Repeatedly render random moving average
-        const randomMovingAverage = randomPriceString();
-        document.getElementById(
-          'current-moving-average'
-        ).innerHTML = randomMovingAverage;
+        // Set the correct initial moving average period input based on uri
+        const movingAveragePeriodInput = document.getElementById(
+          'moving-average-period-input'
+        );
+        movingAveragePeriodInput.value = state.movingAveragePeriod;
+      }
 
-        if (currentPrice && movingAverage) {
-          /* Render summary to handle the cases where the user updates the
+      render({ priceHistory, movingAveragePeriod, isLoading }) {
+        const currentPrice = getCurrentPrice(priceHistory);
+        const movingAverage = getMovingAverage(
+          priceHistory,
+          movingAveragePeriod
+        );
+
+        if (isLoading) {
+          // Repeatedly render random current price
+          const randomCurrentPrice = randomPriceString();
+          document.getElementById(
+            'current-price'
+          ).innerHTML = randomCurrentPrice;
+
+          // Repeatedly render random moving average
+          const randomMovingAverage = randomPriceString();
+          document.getElementById(
+            'current-moving-average'
+          ).innerHTML = randomMovingAverage;
+
+          if (currentPrice && movingAverage) {
+            /* Render summary to handle the cases where the user updates the
              moving average period while new price data is still loading */
+            const summary = getSummary(
+              currentPrice,
+              movingAverage,
+              movingAveragePeriod
+            );
+            document.getElementById('summary').innerHTML = summary;
+          }
+
+          setTimeout(() => this.render(this.state), 0);
+        } else {
+          // Render current price
+          document.getElementById(
+            'current-price'
+          ).innerHTML = currentPrice.toFixed(2);
+
+          // Render moving average label
+          document.getElementById(
+            'current-moving-average-label'
+          ).innerHTML = `${movingAveragePeriod}-day moving average:`;
+
+          // Render moving average
+          document.getElementById(
+            'current-moving-average'
+          ).innerHTML = movingAverage.toFixed(2);
+
+          // Render summary
           const summary = getSummary(
             currentPrice,
             movingAverage,
@@ -409,35 +455,10 @@
           );
           document.getElementById('summary').innerHTML = summary;
         }
-
-        setTimeout(() => this.render(this.state), 0);
-      } else {
-        // Render current price
-        document.getElementById(
-          'current-price'
-        ).innerHTML = currentPrice.toFixed(2);
-
-        // Render moving average label
-        document.getElementById(
-          'current-moving-average-label'
-        ).innerHTML = `${movingAveragePeriod}-day moving average:`;
-
-        // Render moving average
-        document.getElementById(
-          'current-moving-average'
-        ).innerHTML = movingAverage.toFixed(2);
-
-        // Render summary
-        const summary = getSummary(
-          currentPrice,
-          movingAverage,
-          movingAveragePeriod
-        );
-        document.getElementById('summary').innerHTML = summary;
       }
     }
-  }
-</script>
+  </script>
+</head>
 
 <div class="root-style">
   <span id="widget-container" class="container-style">
