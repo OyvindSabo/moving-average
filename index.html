@@ -237,6 +237,65 @@
   };
 </script>
 
+<!-- Reducers -->
+<script>
+  const onSetPriceHistory = (previousState, detail) =>
+    detail.priceHistory
+      ? {
+          ...previousState,
+          priceHistory: detail.priceHistory,
+          isLoading: false,
+        }
+      : previousState;
+
+  const onSetCryptocurrency = (previousState, detail) =>
+    detail.cryptocurrencyId
+      ? {
+          ...previousState,
+          cryptocurrencyId: detail.cryptocurrencyId,
+          isLoading: true,
+        }
+      : previousState;
+
+  const onSetVsCurrency = (previousState, detail) =>
+    detail.vsCurrencyId.slice(-90)
+      ? {
+          ...previousState,
+          vsCurrencyId: detail.vsCurrencyId,
+          isLoading: true,
+        }
+      : previousState;
+
+  const onSetMovingAveragePeriod = (previousState, detail) =>
+    detail.movingAveragePeriod
+      ? {
+          ...previousState,
+          movingAveragePeriod: getValidatedMovingAveragePeriod(
+            detail.movingAveragePeriod
+          ),
+        }
+      : previousState;
+</script>
+
+<!-- Side effects -->
+<script>
+  const fetchPriceHistory = async state =>
+    fetch(
+      `https://api.coingecko.com/api/v3/coins/${state.cryptocurrencyId}/market_chart?vs_currency=${state.vsCurrencyId}&days=${state.days}`
+    ).then(result =>
+      result.json().then(({ prices: priceHistory }) => {
+        window.dispatchEvent(
+          new CustomEvent('SET_PRICE_HISTORY', {
+            detail: { priceHistory },
+          })
+        );
+      })
+    );
+  window.addEventListener('FETCH_PRICE_HISTORY', ({ detail }) => {
+    fetchPriceHistory(detail.state);
+  });
+</script>
+
 <script>
   class Store {
     constructor() {
@@ -244,20 +303,32 @@
 
       // Bind actions to reducers
       window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
-        this.setState(this.onSetPriceHistory(this.state, detail));
+        this.setState(onSetPriceHistory(this.state, detail));
       });
       window.addEventListener('SET_CRYPTOCURRENCY', ({ detail }) => {
-        this.setState(this.onSetCryptocurrency(this.state, detail));
-        this.fetchPriceHistory(this.state);
+        this.setState(onSetCryptocurrency(this.state, detail));
+        window.dispatchEvent(
+          new CustomEvent('FETCH_PRICE_HISTORY', {
+            detail: { state: this.state },
+          })
+        );
       });
       window.addEventListener('SET_VS_CURRENCY', ({ detail }) => {
-        this.setState(this.onSetVsCurrency(this.state, detail));
-        this.fetchPriceHistory(this.state);
+        this.setState(onSetVsCurrency(this.state, detail));
+        window.dispatchEvent(
+          new CustomEvent('FETCH_PRICE_HISTORY', {
+            detail: { state: this.state },
+          })
+        );
       });
       window.addEventListener('SET_MOVING_AVERAGE_PERIOD', ({ detail }) => {
-        this.setState(this.onSetMovingAveragePeriod(this.state, detail));
+        this.setState(onSetMovingAveragePeriod(this.state, detail));
       });
-      this.fetchPriceHistory(this.state);
+      window.dispatchEvent(
+        new CustomEvent('FETCH_PRICE_HISTORY', {
+          detail: { state: this.state },
+        })
+      );
       this.initialRender(this.state);
     }
 
@@ -265,65 +336,6 @@
       this.state = state;
       setUriFromState(this.state);
       this.render(this.state);
-    }
-
-    // Reducers
-    onSetPriceHistory(previousState, detail) {
-      return detail.priceHistory
-        ? {
-            ...previousState,
-            priceHistory: detail.priceHistory,
-            isLoading: false,
-          }
-        : previousState;
-    }
-    onSetCryptocurrency(previousState, detail) {
-      return detail.cryptocurrencyId
-        ? {
-            ...previousState,
-            cryptocurrencyId: detail.cryptocurrencyId,
-            isLoading: true,
-          }
-        : previousState;
-    }
-    onSetVsCurrency(previousState, detail) {
-      return detail.vsCurrencyId.slice(-90)
-        ? {
-            ...previousState,
-            vsCurrencyId: detail.vsCurrencyId,
-            isLoading: true,
-          }
-        : previousState;
-    }
-    onSetMovingAveragePeriod(previousState, detail) {
-      return detail.movingAveragePeriod
-        ? {
-            ...previousState,
-            movingAveragePeriod: getValidatedMovingAveragePeriod(
-              detail.movingAveragePeriod
-            ),
-          }
-        : previousState;
-    }
-
-    // Side effects (which can be called by epics)
-    async fetchPriceHistory(state) {
-      return fetch(
-        `https://api.coingecko.com/api/v3/coins/${state.cryptocurrencyId}/market_chart?vs_currency=${state.vsCurrencyId}&days=${state.days}`
-      )
-        .then(res =>
-          res.json().then(res => {
-            const priceHistory = res.prices;
-            window.dispatchEvent(
-              new CustomEvent('SET_PRICE_HISTORY', {
-                detail: { priceHistory },
-              })
-            );
-          })
-        )
-        .catch(error => {
-          console.log('error: ', error);
-        });
     }
 
     // Sets the correct initial input based on data from the url
