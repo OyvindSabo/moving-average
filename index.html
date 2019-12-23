@@ -25,10 +25,6 @@
       background: #ecf0f1;
       margin: 0;
     }
-    .root-style {
-      max-width: 1140px;
-      margin: auto;
-    }
     .header-style {
       background: white;
       padding: 20px;
@@ -588,123 +584,124 @@
   <span id="sma-menu-button" class="menu-button-style text-style">SMA</span
   ><span id="ema-menu-button" class="menu-button-style text-style">EMA</span>
 </div>
-<div class="root-style">
-  <div id="widget-container" class="container-style shadow">
-    <h1 id="view-title" class="title-style">Simple Moving Average (SMA)</h1>
-    <div class="row-style">
-      <div class="text-style column-style">Cryptocurrency</div>
-      <div class="column-style">
-        <select
-          id="cryptocurrency-select"
-          class="text-style column-style select-style"
-        ></select>
-      </div>
-    </div>
 
-    <div class="row-style">
-      <div class="text-style column-style">vs. currency</div>
-      <div class="column-style">
-        <select
-          id="vs-currency-select"
-          class="text-style column-style select-style"
-        >
-        </select>
-      </div>
-    </div>
-
-    <div class="row-style">
-      <div class="text-style column-style">Moving average period:</div>
-      <div class="column-style">
-        <input
-          id="moving-average-period-input"
-          class="input-style text-style column-style"
-          type="number"
-          value="30"
-        />
-      </div>
-    </div>
-
-    <div class="row-style">
-      <div class="text-style column-style">Current price:</div>
-      <div id="current-price" class="text-style column-style"></div>
-    </div>
-
-    <div class="row-style">
-      <div id="current-moving-average-label" class="text-style column-style">
-        30-day moving average:
-      </div>
-      <div id="current-moving-average" class="text-style column-style"></div>
+<div id="widget-container" class="container-style shadow">
+  <h1 id="view-title" class="title-style">Simple Moving Average (SMA)</h1>
+  <div class="row-style">
+    <div class="text-style column-style">Cryptocurrency</div>
+    <div class="column-style">
+      <select
+        id="cryptocurrency-select"
+        class="text-style column-style select-style"
+      ></select>
     </div>
   </div>
-  <div id="summary" class="summary-style"></div>
-  <div class="footer-style">
-    <a href="https://www.coingecko.com/api/documentations/v3"
-      >Powered by CoinGecko API</a
-    >
+
+  <div class="row-style">
+    <div class="text-style column-style">vs. currency</div>
+    <div class="column-style">
+      <select
+        id="vs-currency-select"
+        class="text-style column-style select-style"
+      >
+      </select>
+    </div>
+  </div>
+
+  <div class="row-style">
+    <div class="text-style column-style">Moving average period:</div>
+    <div class="column-style">
+      <input
+        id="moving-average-period-input"
+        class="input-style text-style column-style"
+        type="number"
+        value="30"
+      />
+    </div>
+  </div>
+
+  <div class="row-style">
+    <div class="text-style column-style">Current price:</div>
+    <div id="current-price" class="text-style column-style"></div>
+  </div>
+
+  <div class="row-style">
+    <div id="current-moving-average-label" class="text-style column-style">
+      30-day moving average:
+    </div>
+    <div id="current-moving-average" class="text-style column-style"></div>
   </div>
 </div>
-
-<!-- Add options to the selects -->
-<script>
-  const cryptocurrencySelect = document.getElementById('cryptocurrency-select');
-  Object.entries(cryptocurrencies).forEach(([id, name]) => {
-    const option = document.createElement('option');
-    option.value = id;
-    option.innerHTML = name;
-    cryptocurrencySelect.appendChild(option);
-  });
-
-  const vsCurrencySelect = document.getElementById('vs-currency-select');
-  Object.entries(vsCurrencies).forEach(([id, name]) => {
-    const option = document.createElement('option');
-    option.value = id;
-    option.innerHTML = name;
-    vsCurrencySelect.appendChild(option);
-  });
-</script>
-
-<!-- Add change listeners to HTML -->
-<script>
-  const smaMenuButton = document.getElementById('sma-menu-button');
-  smaMenuButton.addEventListener('click', () => {
-    window.dispatchEvent(
-      new CustomEvent('NAVIGATE', { detail: { view: 'sma' } })
+<div id="summary" class="summary-style"></div>
+<div class="footer-style">
+  <a href="https://www.coingecko.com/api/documentations/v3"
+    >Powered by CoinGecko API</a
+  >
+</div>
+<to the selects -->
+  <script>
+    const cryptocurrencySelect = document.getElementById(
+      'cryptocurrency-select'
     );
-  });
+    Object.entries(cryptocurrencies).forEach(([id, name]) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.innerHTML = name;
+      cryptocurrencySelect.appendChild(option);
+    });
 
-  const emaMenuButton = document.getElementById('ema-menu-button');
-  emaMenuButton.addEventListener('click', () => {
-    window.dispatchEvent(
-      new CustomEvent('NAVIGATE', { detail: { view: 'ema' } })
-    );
-  });
+    const vsCurrencySelect = document.getElementById('vs-currency-select');
+    Object.entries(vsCurrencies).forEach(([id, name]) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.innerHTML = name;
+      vsCurrencySelect.appendChild(option);
+    });
+  </script>
 
-  cryptocurrencySelect.addEventListener('change', () => {
-    const cryptocurrencyId = cryptocurrencySelect.value;
-    window.dispatchEvent(
-      new CustomEvent('SET_CRYPTOCURRENCY', { detail: { cryptocurrencyId } })
-    );
-  });
+  <!-- Add change listeners to HTML -->
+  <script>
+    const smaMenuButton = document.getElementById('sma-menu-button');
+    smaMenuButton.addEventListener('click', () => {
+      window.dispatchEvent(
+        new CustomEvent('NAVIGATE', { detail: { view: 'sma' } })
+      );
+    });
 
-  vsCurrencySelect.addEventListener('change', () => {
-    const vsCurrencyId = vsCurrencySelect.value;
-    window.dispatchEvent(
-      new CustomEvent('SET_VS_CURRENCY', { detail: { vsCurrencyId } })
-    );
-  });
+    const emaMenuButton = document.getElementById('ema-menu-button');
+    emaMenuButton.addEventListener('click', () => {
+      window.dispatchEvent(
+        new CustomEvent('NAVIGATE', { detail: { view: 'ema' } })
+      );
+    });
 
-  const movingAveragePeriodInput = document.getElementById(
-    'moving-average-period-input'
-  );
-  movingAveragePeriodInput.addEventListener('input', () => {
-    const movingAveragePeriod = movingAveragePeriodInput.value;
-    window.dispatchEvent(
-      new CustomEvent('SET_MOVING_AVERAGE_PERIOD', {
-        detail: { movingAveragePeriod },
-      })
+    cryptocurrencySelect.addEventListener('change', () => {
+      const cryptocurrencyId = cryptocurrencySelect.value;
+      window.dispatchEvent(
+        new CustomEvent('SET_CRYPTOCURRENCY', { detail: { cryptocurrencyId } })
+      );
+    });
+
+    vsCurrencySelect.addEventListener('change', () => {
+      const vsCurrencyId = vsCurrencySelect.value;
+      window.dispatchEvent(
+        new CustomEvent('SET_VS_CURRENCY', { detail: { vsCurrencyId } })
+      );
+    });
+
+    const movingAveragePeriodInput = document.getElementById(
+      'moving-average-period-input'
     );
-  });
-</script>
-<script>
-  const store = new Store();
-</script>
+    movingAveragePeriodInput.addEventListener('input', () => {
+      const movingAveragePeriod = movingAveragePeriodInput.value;
+      window.dispatchEvent(
+        new CustomEvent('SET_MOVING_AVERAGE_PERIOD', {
+          detail: { movingAveragePeriod },
+        })
+      );
+    });
+  </script>
+  <script>
+    const store = new Store();
+  </script>
+</to>
