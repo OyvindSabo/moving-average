@@ -299,6 +299,14 @@
   ┗━┛   ┗━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━━━━━━━┻━┛   ┗━┻━━━━━━━┛
   -->
   <script>
+    const onNavigate = (previousState, detail) =>
+      detail.view
+        ? {
+            ...previousState,
+            view: detail.view,
+          }
+        : previousState;
+
     const onSetPriceHistory = (previousState, detail) =>
       detail.priceHistory
         ? {
@@ -367,6 +375,7 @@
     class Store {
       constructor() {
         this.state = {
+          view: 'sma',
           days: 360,
           cryptocurrencyId: 'bitcoin',
           vsCurrencyId: 'usd',
@@ -382,6 +391,9 @@
         });
 
         // Bind actions to reducers
+        window.addEventListener('NAVIGATE', ({ detail }) => {
+          this.setState(onNavigate(this.state, detail));
+        });
         window.addEventListener('SET_PRICE_HISTORY', ({ detail }) => {
           this.setState(onSetPriceHistory(this.state, detail));
         });
@@ -415,7 +427,20 @@
       setState(state) {
         Object.assign(this.state, state);
         setUriFromState(this.state);
+        this.renderHeader(this.state);
         this.render(this.state);
+      }
+
+      renderHeader(state) {
+        const smaMenuButton = document.getElementById('sma-menu-button');
+        const emaMenuButton = document.getElementById('ema-menu-button');
+        if (state.view === 'sma') {
+          smaMenuButton.classList.add('active');
+          emaMenuButton.classList.remove('active');
+        } else if (state.view === 'ema') {
+          smaMenuButton.classList.remove('active');
+          emaMenuButton.classList.add('active');
+        }
       }
 
       // Sets the correct initial input based on data from the url
@@ -513,8 +538,8 @@
   -->
 <div class="root-style">
   <div class="header-style">
-    <span class="menu-button-style text-style">SMA</span
-    ><span class="menu-button-style text-style">EMA</span>
+    <span id="sma-menu-button" class="menu-button-style text-style">SMA</span
+    ><span id="ema-menu-button" class="menu-button-style text-style">EMA</span>
   </div>
 
   <div id="widget-container" class="container-style">
@@ -592,6 +617,20 @@
 
 <!-- Add change listeners to HTML -->
 <script>
+  const smaMenuButton = document.getElementById('sma-menu-button');
+  smaMenuButton.addEventListener('click', () => {
+    window.dispatchEvent(
+      new CustomEvent('NAVIGATE', { detail: { view: 'sma' } })
+    );
+  });
+
+  const emaMenuButton = document.getElementById('ema-menu-button');
+  emaMenuButton.addEventListener('click', () => {
+    window.dispatchEvent(
+      new CustomEvent('NAVIGATE', { detail: { view: 'ema' } })
+    );
+  });
+
   cryptocurrencySelect.addEventListener('change', () => {
     const cryptocurrencyId = cryptocurrencySelect.value;
     window.dispatchEvent(
