@@ -214,9 +214,9 @@
         .filter(element => element !== '#!');
 
     const getURIState = previousState => {
-      if (!location.hash) return state;
+      if (!location.hash) return previousState;
       const parameters = getParametersFromHash(location.hash);
-      if (parameters.length !== 3) return state;
+      if (parameters.length !== 3) return previousState;
       return {
         ...previousState,
         cryptocurrencyId: isValidCryptocurrency(parameters[0], cryptocurrencies)
