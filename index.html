@@ -36,7 +36,7 @@
     .container-style {
       text-align: left;
       margin: 20px auto;
-      max-width: 512px;
+      max-width: 720px;
     }
     .input-style {
       background: #ecf0f1;
@@ -60,6 +60,10 @@
       padding: 5px;
       margin: 5px;
     }
+    .title-style {
+      color: #2c3e50;
+      padding: 5px;
+    }
     .text-style {
       font-size: 20px;
       font-family: Arial Black;
@@ -68,6 +72,7 @@
     }
     .menu-button-style {
       transition: 0.25s;
+      cursor: pointer;
     }
     .menu-button-style.active {
       text-shadow: 0 0 1px;
@@ -261,6 +266,11 @@
       const hash = `#!/${view}/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
       location.hash = hash;
     };
+
+    const getViewTitle = title =>
+      title === 'sma'
+        ? 'Simple Moving Average (SMA)'
+        : 'Exponential Moving Average (EMA)';
 
     const getValidatedMovingAveragePeriod = movingAveragePeriod =>
       Math.max(Math.min(movingAveragePeriod, 360), 1);
@@ -472,7 +482,9 @@
         movingAveragePeriodInput.value = state.movingAveragePeriod;
       }
 
-      render({ priceHistory, movingAveragePeriod, isLoading }) {
+      render({ view, priceHistory, movingAveragePeriod, isLoading }) {
+        // Render view title
+        document.getElementById('view-title').innerHTML = getViewTitle(view);
         const currentPrice = getCurrentPrice(priceHistory);
         const movingAverage = getMovingAverage(
           priceHistory,
@@ -547,6 +559,7 @@
   </div>
 
   <div id="widget-container" class="container-style">
+    <h1 id="view-title" class="title-style">Simple Moving Average (SMA)</h1>
     <div class="row-style">
       <div class="text-style column-style">Cryptocurrency</div>
       <div class="column-style">
