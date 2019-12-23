@@ -1,11 +1,8 @@
-### Currency info
+# Moving Average
 
-https://api.coingecko.com/api/v3/coins
+Moving Average Calculator for Cryptocurrencies
 
-### Currency chart data
+**Screenshot:**
+![Screenshot from 2019-12-23 10-04-27](https://user-images.githubusercontent.com/25663729/71347908-abaa1400-256b-11ea-9d22-7b8760171609.png)
 
-https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=eur&days=30
-
-- Minutely data will be used for duration within 1 day
-- Hourly data will be used for duration between 1 day and 90 days
-- Daily data will be used for duration above 90 days
+[Powered by CoinGecko API]("https://www.coingecko.com/api/documentations/v3")
