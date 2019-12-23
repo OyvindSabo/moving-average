@@ -23,11 +23,16 @@
   <style>
     body {
       background: #ecf0f1;
+      margin: 0;
     }
 
     .root-style {
       max-width: 1140px;
       margin: auto;
+    }
+    .header-style {
+      background: white;
+      padding: 20px;
     }
     .row-style {
       margin: 5px;
@@ -577,12 +582,11 @@
 ┃ ┃   ┃ ┃  ┃ ┃  ┃ ┃┃ ┃┃ ┃ ┗━━━━━┓
 ┗━┛   ┗━┛  ┗━┛  ┗━┛┗━┛┗━┻━━━━━━━┛
   -->
+<div class="header-style">
+  <span id="sma-menu-button" class="menu-button-style text-style">SMA</span
+  ><span id="ema-menu-button" class="menu-button-style text-style">EMA</span>
+</div>
 <div class="root-style">
-  <div class="header-style">
-    <span id="sma-menu-button" class="menu-button-style text-style">SMA</span
-    ><span id="ema-menu-button" class="menu-button-style text-style">EMA</span>
-  </div>
-
   <div id="widget-container" class="container-style">
     <h1 id="view-title" class="title-style">Simple Moving Average (SMA)</h1>
     <div class="row-style">
