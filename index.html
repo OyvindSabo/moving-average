@@ -22,33 +22,40 @@
   -->
   <style>
     .root-style {
-      text-align: center;
+      max-width: 1140px;
+      margin: auto;
+    }
+    .row-style {
+      display: flex;
     }
     .column-style {
-      display: inline-block;
-      width: 250px;
+      flex-grow: 1;
+      flex-basis: 0;
     }
     .container-style {
       text-align: left;
-      display: inline-block;
-      margin: 20px;
+      margin: 20px auto;
+      max-width: 512px;
     }
     .input-style {
       background: #ecf0f1;
       border: none;
       border-radius: 5px;
       outline: none;
+      width: 100%;
     }
     .select-style {
       background: #ecf0f1;
       border: none;
       border-radius: 5px;
       outline: none;
+      width: 100%;
     }
     .summary-style {
       font-size: 40px;
       font-family: Arial Black;
       color: #2c3e50;
+      text-align: center;
       padding: 5px;
       margin: 5px;
     }
@@ -61,6 +68,7 @@
     }
     .footer-style {
       box-sizing: border-box;
+      text-align: center;
       position: fixed;
       padding: 20px;
       bottom: 0;
@@ -495,36 +503,52 @@
 ┗━┛   ┗━┛  ┗━┛  ┗━┛┗━┛┗━┻━━━━━━━┛
   -->
 <div class="root-style">
-  <span id="widget-container" class="container-style">
-    <span class="text-style column-style">Cryptocurrency</span>
-    <select
-      id="cryptocurrency-select"
-      class="text-style column-style select-style"
-    ></select
-    ><br />
-    <span class="text-style column-style">vs. currency</span>
-    <select
-      id="vs-currency-select"
-      class="text-style column-style select-style"
-    >
-    </select>
-    <br />
-    <span class="text-style column-style">Moving average period: </span>
-    <input
-      id="moving-average-period-input"
-      class="input-style text-style column-style"
-      type="number"
-      value="30"
-    />
-    <br />
-    <span class="text-style column-style">Current price: </span>
-    <span id="current-price" class="text-style column-style"></span>
-    <br />
-    <span id="current-moving-average-label" class="text-style column-style"
-      >30-day moving average:
-    </span>
-    <span id="current-moving-average" class="text-style column-style"></span>
-  </span>
+  <div id="widget-container" class="container-style">
+    <div class="row-style">
+      <div class="text-style column-style">Cryptocurrency</div>
+      <div class="column-style">
+        <select
+          id="cryptocurrency-select"
+          class="text-style column-style select-style"
+        ></select>
+      </div>
+    </div>
+
+    <div class="row-style">
+      <div class="text-style column-style">vs. currency</div>
+      <div class="column-style">
+        <select
+          id="vs-currency-select"
+          class="text-style column-style select-style"
+        >
+        </select>
+      </div>
+    </div>
+
+    <div class="row-style">
+      <div class="text-style column-style">Moving average period:</div>
+      <div class="column-style">
+        <input
+          id="moving-average-period-input"
+          class="input-style text-style column-style"
+          type="number"
+          value="30"
+        />
+      </div>
+    </div>
+
+    <div class="row-style">
+      <div class="text-style column-style">Current price:</div>
+      <div id="current-price" class="text-style column-style"></div>
+    </div>
+
+    <div class="row-style">
+      <div id="current-moving-average-label" class="text-style column-style">
+        30-day moving average:
+      </div>
+      <div id="current-moving-average" class="text-style column-style"></div>
+    </div>
+  </div>
   <div id="summary" class="summary-style"></div>
   <div class="footer-style">
     <a href="https://www.coingecko.com/api/documentations/v3"
