@@ -252,7 +252,7 @@
           ? parameters[2]
           : previousState.vsCurrencyId,
         movingAveragePeriod: isValidMovingAveragePeriod(parameters[3])
-          ? parameters[3]
+          ? parseInt(parameters[3])
           : previousState.movingAveragePeriod,
       };
     };
@@ -292,15 +292,31 @@
     };
 
     const getCurrentPrice = priceHistory =>
-      priceHistory.length ? priceHistory.slice(-1)[0][1] : null;
+      priceHistory.length ? priceHistory.slice(-1)[0] : null;
 
-    const getMovingAverage = (priceHistory, movingAveragePeriod) =>
+    const getSimpleMovingAverage = (priceHistory, movingAveragePeriod) =>
       priceHistory.length
         ? priceHistory
             .slice(-movingAveragePeriod)
-            .reduce((sum, [timestamp, price]) => price + sum, 0) /
-          movingAveragePeriod
+            .reduce((sum, price) => price + sum, 0) / movingAveragePeriod
         : null;
+
+    // Based on https://stackoverflow.com/questions/40057020/calculating-exponential-moving-average-ema-using-javascript
+    const getExponentialMovingAverage = (priceHistory, movingAveragePeriod) =>
+      priceHistory
+        .reduce(
+          (emaArray, price, i) =>
+            i
+              ? emaArray.concat(
+                  (2 * price) / (movingAveragePeriod + 1) +
+                    (emaArray[emaArray.length - 1] *
+                      (movingAveragePeriod - 1)) /
+                      (movingAveragePeriod + 1)
+                )
+              : emaArray,
+          [priceHistory[0]]
+        )
+        .slice(-1)[0];
 
     const getRandomPriceString = () => (Math.random() * 10000).toFixed(2);
   </script>
@@ -368,7 +384,7 @@
         result.json().then(({ prices: priceHistory }) => {
           window.dispatchEvent(
             new CustomEvent('SET_PRICE_HISTORY', {
-              detail: { priceHistory },
+              detail: { priceHistory: priceHistory.map(([_, price]) => price) },
             })
           );
         })
@@ -486,11 +502,12 @@
         // Render view title
         document.getElementById('view-title').innerHTML = getViewTitle(view);
         const currentPrice = getCurrentPrice(priceHistory);
+        const getMovingAverage =
+          view === 'sma' ? getSimpleMovingAverage : getExponentialMovingAverage;
         const movingAverage = getMovingAverage(
           priceHistory,
           movingAveragePeriod
         );
-
         if (isLoading) {
           // Repeatedly render random current price
           const randomCurrentPrice = getRandomPriceString();
