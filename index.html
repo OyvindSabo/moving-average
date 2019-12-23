@@ -66,6 +66,15 @@
       color: #2c3e50;
       padding: 5px;
     }
+    .menu-button-style {
+      transition: 0.25s;
+    }
+    .menu-button-style.active {
+      text-shadow: 0 0 1px;
+    }
+    .menu-button-style:hover {
+      text-shadow: 0 0 1px;
+    }
     .footer-style {
       box-sizing: border-box;
       text-align: center;
@@ -503,6 +512,11 @@
 ┗━┛   ┗━┛  ┗━┛  ┗━┛┗━┛┗━┻━━━━━━━┛
   -->
 <div class="root-style">
+  <div class="header-style">
+    <span class="menu-button-style text-style">SMA</span
+    ><span class="menu-button-style text-style">EMA</span>
+  </div>
+
   <div id="widget-container" class="container-style">
     <div class="row-style">
       <div class="text-style column-style">Cryptocurrency</div>
