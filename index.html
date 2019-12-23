@@ -208,6 +208,8 @@
   ┗━━━━━━━┛  ┗━┛  ┗━┻━━━━━━━┻━━━━━━━┛
   -->
   <script>
+    const isValidView = view => ['sma', 'ema'].includes(view);
+
     const isValidCryptocurrency = (cryptocurrencyId, cryptocurrencies) =>
       Object.keys(cryptocurrencies).includes(cryptocurrencyId);
 
@@ -234,27 +236,29 @@
     const getURIState = previousState => {
       if (!location.hash) return previousState;
       const parameters = getParametersFromHash(location.hash);
-      if (parameters.length !== 3) return previousState;
+      if (parameters.length !== 4) return previousState;
       return {
         ...previousState,
-        cryptocurrencyId: isValidCryptocurrency(parameters[0], cryptocurrencies)
-          ? parameters[0]
-          : previousState.cryptocurrencyId,
-        vsCurrencyId: isValidVsCurrency(parameters[1], vsCurrencies)
+        view: isValidView(parameters[0]) ? parameters[0] : previousState.view,
+        cryptocurrencyId: isValidCryptocurrency(parameters[1], cryptocurrencies)
           ? parameters[1]
-          : previousState.vsCurrencyId,
-        movingAveragePeriod: isValidMovingAveragePeriod(parameters[2])
+          : previousState.cryptocurrencyId,
+        vsCurrencyId: isValidVsCurrency(parameters[2], vsCurrencies)
           ? parameters[2]
+          : previousState.vsCurrencyId,
+        movingAveragePeriod: isValidMovingAveragePeriod(parameters[3])
+          ? parameters[3]
           : previousState.movingAveragePeriod,
       };
     };
 
     const setUriFromState = ({
+      view,
       cryptocurrencyId,
       vsCurrencyId,
       movingAveragePeriod,
     }) => {
-      const hash = `#!/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
+      const hash = `#!/${view}/${cryptocurrencyId}/${vsCurrencyId}/${movingAveragePeriod}`;
       location.hash = hash;
     };
 
@@ -288,7 +292,7 @@
           movingAveragePeriod
         : null;
 
-    const randomPriceString = () => (Math.random() * 10000).toFixed(2);
+    const getRandomPriceString = () => (Math.random() * 10000).toFixed(2);
   </script>
   <!--
   ┏━━━━━┓ ┏━━━━━━━┳━━━━━━━┳━┓   ┏━┳━━━━━━━┳━━━━━━━┳━━━━━┓ ┏━━━━━━━┓
@@ -477,13 +481,13 @@
 
         if (isLoading) {
           // Repeatedly render random current price
-          const randomCurrentPrice = randomPriceString();
+          const randomCurrentPrice = getRandomPriceString();
           document.getElementById(
             'current-price'
           ).innerHTML = randomCurrentPrice;
 
           // Repeatedly render random moving average
-          const randomMovingAverage = randomPriceString();
+          const randomMovingAverage = getRandomPriceString();
           document.getElementById(
             'current-moving-average'
           ).innerHTML = randomMovingAverage;
